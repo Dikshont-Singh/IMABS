@@ -1,10 +1,6 @@
 import sys
 from pathlib import Path
-<<<<<<< HEAD
 from collections import defaultdict
-=======
-
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
 
 # ============================================================
 # FIX IMPORT PATH
@@ -13,15 +9,7 @@ from collections import defaultdict
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 if str(PROJECT_ROOT) not in sys.path:
-<<<<<<< HEAD
     sys.path.insert(0, str(PROJECT_ROOT))
-=======
-
-    sys.path.insert(
-        0,
-        str(PROJECT_ROOT)
-    )
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
 
 
 # ============================================================
@@ -36,12 +24,9 @@ from tkinter import (
     messagebox
 )
 
-<<<<<<< HEAD
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 
-=======
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
 
 from database import (
     initialize_database,
@@ -61,7 +46,6 @@ from database import (
 # ============================================================
 
 ctk.set_appearance_mode("light")
-
 ctk.set_default_color_theme("blue")
 
 
@@ -70,7 +54,6 @@ ctk.set_default_color_theme("blue")
 # ============================================================
 
 NAVY = "#172554"
-<<<<<<< HEAD
 NAVY_HOVER = "#243B78"
 
 BLUE = "#2563EB"
@@ -158,100 +141,6 @@ class DashboardApp(ctk.CTk):
         super().__init__()
 
 
-=======
-
-NAVY_HOVER = "#243B78"
-
-BLUE = "#2563EB"
-
-BLUE_HOVER = "#1D4ED8"
-
-GREEN = "#0F766E"
-
-GREEN_HOVER = "#115E59"
-
-RED = "#DC2626"
-
-RED_HOVER = "#B91C1C"
-
-GRAY = "#64748B"
-
-GRAY_HOVER = "#475569"
-
-PAGE_BG = "#F4F6FA"
-
-WHITE = "#FFFFFF"
-
-BORDER = "#E2E8F0"
-
-TEXT = "#0F172A"
-
-MUTED = "#64748B"
-
-
-# ============================================================
-# SIDEBAR BUTTON
-# ============================================================
-
-class SidebarButton(ctk.CTkButton):
-
-    def __init__(
-        self,
-        master,
-        text,
-        command=None
-    ):
-
-        super().__init__(
-            master,
-            text=text,
-            command=command,
-            anchor="w",
-            height=42,
-            corner_radius=7,
-            fg_color="transparent",
-            hover_color=NAVY_HOVER,
-            text_color="#FFFFFF",
-            font=ctk.CTkFont(
-                size=14
-            )
-        )
-
-
-    def set_active(self, active):
-
-        if active:
-
-            self.configure(
-                fg_color=NAVY_HOVER,
-                font=ctk.CTkFont(
-                    size=14,
-                    weight="bold"
-                )
-            )
-
-        else:
-
-            self.configure(
-                fg_color="transparent",
-                font=ctk.CTkFont(
-                    size=14
-                )
-            )
-
-
-# ============================================================
-# DASHBOARD APPLICATION
-# ============================================================
-
-class DashboardApp(ctk.CTk):
-
-    def __init__(self):
-
-        super().__init__()
-
-
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         # ----------------------------------------------------
         # DATABASE
         # ----------------------------------------------------
@@ -495,11 +384,7 @@ class DashboardApp(ctk.CTk):
         # CONTENT AREA
         # ----------------------------------------------------
 
-<<<<<<< HEAD
         self.content = ctk.CTkScrollableFrame(
-=======
-        self.content = ctk.CTkFrame(
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
             self.main,
             fg_color=PAGE_BG,
             corner_radius=0
@@ -513,23 +398,12 @@ class DashboardApp(ctk.CTk):
             pady=30
         )
 
-<<<<<<< HEAD
 
-=======
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         self.content.grid_columnconfigure(
             0,
             weight=1
         )
 
-<<<<<<< HEAD
-=======
-        self.content.grid_rowconfigure(
-            2,
-            weight=1
-        )
-
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
 
     # ========================================================
     # CLEAR CONTENT
@@ -599,15 +473,8 @@ class DashboardApp(ctk.CTk):
             )
         )
 
-<<<<<<< HEAD
         title.pack(
             anchor="w"
-=======
-        title.grid(
-            row=0,
-            column=0,
-            sticky="w"
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         )
 
 
@@ -617,17 +484,9 @@ class DashboardApp(ctk.CTk):
             text_color=MUTED
         )
 
-<<<<<<< HEAD
         subtitle.pack(
             anchor="w",
             pady=(3, 0)
-=======
-        subtitle.grid(
-            row=0,
-            column=0,
-            sticky="w",
-            pady=(45, 0)
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         )
 
 
@@ -643,15 +502,8 @@ class DashboardApp(ctk.CTk):
             fg_color="transparent"
         )
 
-<<<<<<< HEAD
         cards.pack(
             fill="x",
-=======
-        cards.grid(
-            row=1,
-            column=0,
-            sticky="we",
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
             pady=(30, 25)
         )
 
@@ -708,16 +560,9 @@ class DashboardApp(ctk.CTk):
             border_color=BORDER
         )
 
-<<<<<<< HEAD
         panel.pack(
             fill="both",
             expand=True
-=======
-        panel.grid(
-            row=2,
-            column=0,
-            sticky="nswe"
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         )
 
 
@@ -827,7 +672,6 @@ class DashboardApp(ctk.CTk):
         )
 
 
-<<<<<<< HEAD
         subtitle = ctk.CTkLabel(
             self.content,
             text="Manage your products and stock",
@@ -840,8 +684,6 @@ class DashboardApp(ctk.CTk):
         )
 
 
-=======
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         # ----------------------------------------------------
         # BUTTON BAR
         # ----------------------------------------------------
@@ -1120,20 +962,12 @@ class DashboardApp(ctk.CTk):
         )
 
 
-<<<<<<< HEAD
-=======
-        # Double click to edit
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         self.inventory_tree.bind(
             "<Double-1>",
             self.edit_selected_product
         )
 
 
-<<<<<<< HEAD
-=======
-        # Right click menu
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         self.inventory_tree.bind(
             "<Button-3>",
             self.show_context_menu
@@ -1171,11 +1005,6 @@ class DashboardApp(ctk.CTk):
             )
 
 
-<<<<<<< HEAD
-=======
-        # Clear table
-
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         for item in self.inventory_tree.get_children():
 
             self.inventory_tree.delete(
@@ -1183,11 +1012,6 @@ class DashboardApp(ctk.CTk):
             )
 
 
-<<<<<<< HEAD
-=======
-        # Add search results
-
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         for product in products:
 
             self.inventory_tree.insert(
@@ -1549,7 +1373,6 @@ class DashboardApp(ctk.CTk):
                 return
 
 
-<<<<<<< HEAD
             if quantity < 0 or price < 0:
 
                 messagebox.showerror(
@@ -1561,8 +1384,6 @@ class DashboardApp(ctk.CTk):
                 return
 
 
-=======
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
             success, message = update_product(
                 int(values[0]),
                 sku,
@@ -1653,11 +1474,8 @@ class DashboardApp(ctk.CTk):
             False
         )
 
-<<<<<<< HEAD
         menu.grab_set()
 
-=======
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
 
         ctk.CTkButton(
             menu,
@@ -1871,12 +1689,6 @@ class DashboardApp(ctk.CTk):
 
     def refresh_dashboard_if_needed(self):
 
-<<<<<<< HEAD
-=======
-        # If dashboard is currently visible,
-        # rebuild it so statistics update.
-
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         try:
 
             current_buttons = [
@@ -1889,11 +1701,8 @@ class DashboardApp(ctk.CTk):
 
             if "Dashboard" in current_buttons:
 
-<<<<<<< HEAD
                 self.clear_content()
 
-=======
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
                 self.show_dashboard()
 
         except Exception:
@@ -1942,7 +1751,6 @@ class DashboardApp(ctk.CTk):
 
     def show_reports(self):
 
-<<<<<<< HEAD
         # ----------------------------------------------------
         # HEADER
         # ----------------------------------------------------
@@ -1969,10 +1777,6 @@ class DashboardApp(ctk.CTk):
 
         title = ctk.CTkLabel(
             title_frame,
-=======
-        title = ctk.CTkLabel(
-            self.content,
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
             text="Reports",
             font=ctk.CTkFont(
                 size=30,
@@ -1986,7 +1790,6 @@ class DashboardApp(ctk.CTk):
         )
 
 
-<<<<<<< HEAD
         subtitle = ctk.CTkLabel(
             title_frame,
             text="Visual analysis of your inventory",
@@ -2283,24 +2086,10 @@ class DashboardApp(ctk.CTk):
             fill="both",
             expand=True,
             pady=12
-=======
-        stats = get_dashboard_stats()
-
-
-        report = (
-            f"Total Products: {stats['total_products']}\n\n"
-            f"Total Stock Value: "
-            f"₹{stats['total_value']:,.2f}\n\n"
-            f"Low Stock Products: "
-            f"{stats['low_stock']}\n\n"
-            f"Out of Stock Products: "
-            f"{stats['out_of_stock']}"
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         )
 
 
         ctk.CTkLabel(
-<<<<<<< HEAD
             info,
             text=title,
             text_color=MUTED,
@@ -2831,18 +2620,6 @@ class DashboardApp(ctk.CTk):
             expand=True,
             padx=15,
             pady=10
-=======
-            self.content,
-            text=report,
-            justify="left",
-            font=ctk.CTkFont(
-                size=17
-            ),
-            text_color=TEXT
-        ).pack(
-            anchor="w",
-            pady=40
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         )
 
 
@@ -2868,7 +2645,6 @@ class DashboardApp(ctk.CTk):
 
 
         database_location = str(
-<<<<<<< HEAD
             PROJECT_ROOT
             / "Database"
             / "inventory.db"
@@ -2890,18 +2666,11 @@ class DashboardApp(ctk.CTk):
         card.pack(
             fill="x",
             pady=(30, 0)
-=======
-            PROJECT_ROOT / "Database" / "inventory.db"
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         )
 
 
         ctk.CTkLabel(
-<<<<<<< HEAD
             card,
-=======
-            self.content,
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
             text="Database",
             font=ctk.CTkFont(
                 size=18,
@@ -2910,57 +2679,33 @@ class DashboardApp(ctk.CTk):
             text_color=TEXT
         ).pack(
             anchor="w",
-<<<<<<< HEAD
             padx=25,
             pady=(25, 5)
-=======
-            pady=(40, 5)
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         )
 
 
         ctk.CTkLabel(
-<<<<<<< HEAD
             card,
             text=database_location,
             text_color=MUTED
         ).pack(
             anchor="w",
             padx=25
-=======
-            self.content,
-            text=database_location,
-            text_color=MUTED
-        ).pack(
-            anchor="w"
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         )
 
 
         ctk.CTkLabel(
-<<<<<<< HEAD
             card,
             text="● Database Status: Connected",
             text_color=GREEN,
             font=ctk.CTkFont(
                 size=14,
-=======
-            self.content,
-            text="Database Status: Connected",
-            text_color=GREEN,
-            font=ctk.CTkFont(
-                size=15,
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
                 weight="bold"
             )
         ).pack(
             anchor="w",
-<<<<<<< HEAD
             padx=25,
             pady=(15, 25)
-=======
-            pady=20
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         )
 
 
@@ -2972,12 +2717,8 @@ class DashboardApp(ctk.CTk):
 
         messagebox.showinfo(
             "Create Invoice",
-<<<<<<< HEAD
             "Billing and invoice generation will be added "
             "in the next module."
-=======
-            "Billing and invoice generation will be added in the next module."
->>>>>>> 779de1229d827f475d12f469a0331bd99890aa75
         )
 
 
