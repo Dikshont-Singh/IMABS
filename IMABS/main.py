@@ -395,7 +395,7 @@ class DashboardApp(ctk.CTk):
             column=0,
             sticky="nswe",
             padx=35,
-            pady=30
+            pady=60
         )
 
 
@@ -662,7 +662,7 @@ class DashboardApp(ctk.CTk):
             text="Inventory",
             text_color=TEXT,
             font=ctk.CTkFont(
-                size=30,
+                size=60,
                 weight="bold"
             )
         )
