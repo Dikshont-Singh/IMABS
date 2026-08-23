@@ -1,3 +1,4 @@
+```text
 Inventory Billing System
 │
 ├── main.py
