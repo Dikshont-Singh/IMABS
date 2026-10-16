@@ -1,581 +1,381 @@
-import sqlite3
 import csv
+import os
+import sqlite3
+import tempfile
+from datetime import datetime
 from pathlib import Path
 
-
 # ============================================================
-# DATABASE LOCATION
+# DATABASE CONFIGURATION (WITH ONEDRIVE / UNICODE PATH FALLBACK)
 # ============================================================
-
-# School-project folder
-BASE_DIR = Path(__file__).resolve().parent
-
-# Database folder
-DATABASE_DIR = BASE_DIR / "Database"
-
-# Create Database folder if it doesn't exist
-DATABASE_DIR.mkdir(exist_ok=True)
-
-# SQLite database file
-DATABASE_FILE = DATABASE_DIR / "inventory.db"
+PROJECT_ROOT = Path(__file__).resolve().parent
+LOW_STOCK_THRESHOLD = 10
 
 
-# ============================================================
-# DATABASE CONNECTION
-# ============================================================
+def _resolve_writable_db_path() -> Path:
+    """
+    Find a writable SQLite database path.
+    If the project is inside a OneDrive / Unicode folder (e.g., OneDrive\\ドキュメント\\Desktop)
+    or a Windows Controlled Folder Access directory where SQLite cannot open/create files,
+    automatically fall back to %LOCALAPPDATA%\\IMABS or ~/IMABS_Data.
+    """
+    candidates = [
+        PROJECT_ROOT / "Database" / "inventory.db",
+        PROJECT_ROOT / "inventory.db",
+    ]
+    local_app_data = os.environ.get("LOCALAPPDATA")
+    if local_app_data:
+        candidates.append(Path(local_app_data) / "IMABS" / "Database" / "inventory.db")
+    candidates.extend([
+        Path.home() / "IMABS_Data" / "inventory.db",
+        Path(tempfile.gettempdir()) / "IMABS" / "inventory.db",
+    ])
+
+    for candidate in candidates:
+        try:
+            candidate.parent.mkdir(parents=True, exist_ok=True)
+            conn = sqlite3.connect(str(candidate))
+            conn.execute("CREATE TABLE IF NOT EXISTS _db_check (id INTEGER);")
+            conn.commit()
+            conn.close()
+            return candidate
+        except Exception:
+            continue
+
+    # Last-resort fallback
+    fallback = Path(tempfile.gettempdir()) / "inventory.db"
+    return fallback
+
+
+DB_PATH = _resolve_writable_db_path()
+DB_FOLDER = DB_PATH.parent
+
 
 def get_connection():
-    return sqlite3.connect(DATABASE_FILE)
+    """Return an optimized SQLite connection with safe fallback for OneDrive/Windows."""
+    global DB_PATH, DB_FOLDER
+    try:
+        DB_FOLDER.mkdir(parents=True, exist_ok=True)
+        conn = sqlite3.connect(str(DB_PATH))
+    except sqlite3.OperationalError:
+        DB_PATH = _resolve_writable_db_path()
+        DB_FOLDER = DB_PATH.parent
+        conn = sqlite3.connect(str(DB_PATH))
+
+    try:
+        conn.execute("PRAGMA journal_mode=WAL;")
+    except sqlite3.Error:
+        try:
+            conn.execute("PRAGMA journal_mode=DELETE;")
+        except sqlite3.Error:
+            pass
+
+    try:
+        conn.execute("PRAGMA synchronous=NORMAL;")
+        conn.execute("PRAGMA foreign_keys=ON;")
+    except sqlite3.Error:
+        pass
+    return conn
+
+
+def get_low_stock_threshold() -> int:
+    """Fetch the configured low-stock threshold from settings (default 10)."""
+    try:
+        with get_connection() as conn:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT value FROM app_settings WHERE key = 'low_stock_threshold'"
+            )
+            row = cur.fetchone()
+            if row and row[0] is not None:
+                return max(1, int(float(row[0])))
+    except Exception:
+        pass
+    return LOW_STOCK_THRESHOLD
+
+
+def compute_status(quantity: int, threshold: int = None) -> str:
+    """Compute stock status string from quantity."""
+    limit = threshold if threshold is not None else get_low_stock_threshold()
+    if quantity <= 0:
+        return "Out of Stock"
+    if quantity <= limit:
+        return "Low Stock"
+    return "In Stock"
 
 
 # ============================================================
 # INITIALIZE DATABASE
 # ============================================================
-
 def initialize_database():
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS products (
-
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-
-            sku TEXT UNIQUE NOT NULL,
-
-            name TEXT NOT NULL,
-
-            category TEXT NOT NULL,
-
-            quantity INTEGER NOT NULL DEFAULT 0,
-
-            price REAL NOT NULL DEFAULT 0,
-
-            status TEXT NOT NULL
-
-        )
-    """)
-
-    connection.commit()
-    connection.close()
-
-
-# ============================================================
-# STOCK STATUS
-# ============================================================
-
-def get_stock_status(quantity):
-
-    if quantity <= 0:
-        return "Out of Stock"
-
-    elif quantity <= 10:
-        return "Low Stock"
-
-    else:
-        return "In Stock"
-
-
-# ============================================================
-# ADD PRODUCT
-# ============================================================
-
-def add_product(
-    sku,
-    name,
-    category,
-    quantity,
-    price
-):
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    status = get_stock_status(quantity)
-
-    try:
-
-        cursor.execute("""
-            INSERT INTO products
-            (
-                sku,
-                name,
-                category,
-                quantity,
-                price,
-                status
+    """Create products, invoices, invoice_items, and app_settings tables."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS products (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                sku TEXT UNIQUE NOT NULL,
+                name TEXT NOT NULL,
+                category TEXT NOT NULL,
+                quantity INTEGER NOT NULL DEFAULT 0,
+                price REAL NOT NULL DEFAULT 0.0,
+                status TEXT NOT NULL DEFAULT 'In Stock'
             )
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS invoices (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                invoice_no TEXT UNIQUE NOT NULL,
+                customer_name TEXT NOT NULL,
+                customer_phone TEXT DEFAULT '',
+                payment_method TEXT NOT NULL DEFAULT 'Cash',
+                subtotal REAL NOT NULL DEFAULT 0.0,
+                discount_pct REAL NOT NULL DEFAULT 0.0,
+                discount_amount REAL NOT NULL DEFAULT 0.0,
+                tax_pct REAL NOT NULL DEFAULT 0.0,
+                tax_amount REAL NOT NULL DEFAULT 0.0,
+                grand_total REAL NOT NULL DEFAULT 0.0,
+                created_at TEXT NOT NULL
+            )
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS invoice_items (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                invoice_id INTEGER NOT NULL,
+                product_id INTEGER,
+                sku TEXT NOT NULL,
+                product_name TEXT NOT NULL,
+                quantity INTEGER NOT NULL,
+                unit_price REAL NOT NULL,
+                line_total REAL NOT NULL,
+                FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE CASCADE
+            )
+            """
+        )
+        cursor.execute(
+            """
+            CREATE TABLE IF NOT EXISTS app_settings (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            )
+            """
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_products_name ON products(name)"
+        )
+        cursor.execute(
+            "CREATE INDEX IF NOT EXISTS idx_products_category ON products(category)"
+        )
+        conn.commit()
 
-            VALUES (?, ?, ?, ?, ?, ?)
-        """, (
-            sku,
-            name,
-            category,
-            quantity,
-            price,
-            status
-        ))
 
-        connection.commit()
-
-        return True, "Product added successfully."
-
+# ============================================================
+# CRUD OPERATIONS (PRODUCTS)
+# ============================================================
+def add_product(sku, name, category, quantity, price):
+    """Add a new product to the database."""
+    status = compute_status(int(quantity))
+    try:
+        with get_connection() as conn:
+            conn.execute(
+                """
+                INSERT INTO products (sku, name, category, quantity, price, status)
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (sku.strip(), name.strip(), category.strip(), int(quantity), float(price), status),
+            )
+            conn.commit()
+        return True, f"Product '{name}' added successfully."
     except sqlite3.IntegrityError:
+        return False, f"SKU '{sku}' already exists. Please use a unique SKU."
+    except Exception as exc:
+        return False, f"Database error: {exc}"
 
-        return False, "SKU already exists."
-
-    except Exception as error:
-
-        return False, str(error)
-
-    finally:
-
-        connection.close()
-
-
-# ============================================================
-# GET ALL PRODUCTS
-# ============================================================
 
 def get_products():
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    cursor.execute("""
-        SELECT
-            id,
-            sku,
-            name,
-            category,
-            quantity,
-            price,
-            status
-
-        FROM products
-
-        ORDER BY id DESC
-    """)
-
-    products = cursor.fetchall()
-
-    connection.close()
-
-    return products
+    """Retrieve all products ordered by ID descending."""
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, sku, name, category, quantity, price, status
+            FROM products
+            ORDER BY id DESC
+            """
+        )
+        return cursor.fetchall()
 
 
-# ============================================================
-# SEARCH PRODUCTS
-# ============================================================
-
-def search_products(search_text):
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    search = f"%{search_text}%"
-
-    cursor.execute("""
-        SELECT
-            id,
-            sku,
-            name,
-            category,
-            quantity,
-            price,
-            status
-
-        FROM products
-
-        WHERE
-            sku LIKE ?
-            OR name LIKE ?
-            OR category LIKE ?
-
-        ORDER BY id DESC
-    """, (
-        search,
-        search,
-        search
-    ))
-
-    products = cursor.fetchall()
-
-    connection.close()
-
-    return products
+def search_products(query):
+    """Search products by SKU, name, category, or status."""
+    pattern = f"%{query.strip()}%"
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT id, sku, name, category, quantity, price, status
+            FROM products
+            WHERE sku LIKE ? OR name LIKE ? OR category LIKE ? OR status LIKE ?
+            ORDER BY id DESC
+            """,
+            (pattern, pattern, pattern, pattern),
+        )
+        return cursor.fetchall()
 
 
-# ============================================================
-# UPDATE PRODUCT
-# ============================================================
-
-def update_product(
-    product_id,
-    sku,
-    name,
-    category,
-    quantity,
-    price
-):
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    status = get_stock_status(quantity)
-
+def update_product(product_id, sku, name, category, quantity, price):
+    """Update an existing product by ID."""
+    status = compute_status(int(quantity))
     try:
-
-        cursor.execute("""
-            UPDATE products
-
-            SET
-                sku = ?,
-                name = ?,
-                category = ?,
-                quantity = ?,
-                price = ?,
-                status = ?
-
-            WHERE id = ?
-        """, (
-            sku,
-            name,
-            category,
-            quantity,
-            price,
-            status,
-            product_id
-        ))
-
-        connection.commit()
-
-        return True, "Product updated successfully."
-
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                """
+                UPDATE products
+                SET sku = ?, name = ?, category = ?, quantity = ?, price = ?, status = ?
+                WHERE id = ?
+                """,
+                (
+                    sku.strip(),
+                    name.strip(),
+                    category.strip(),
+                    int(quantity),
+                    float(price),
+                    status,
+                    int(product_id),
+                ),
+            )
+            if cursor.rowcount == 0:
+                return False, "Product not found."
+            conn.commit()
+        return True, f"Product '{name}' updated successfully."
     except sqlite3.IntegrityError:
+        return False, f"SKU '{sku}' is already in use by another product."
+    except Exception as exc:
+        return False, f"Database error: {exc}"
 
-        return False, "Another product already uses this SKU."
-
-    except Exception as error:
-
-        return False, str(error)
-
-    finally:
-
-        connection.close()
-
-
-# ============================================================
-# DELETE PRODUCT
-# ============================================================
 
 def delete_product(product_id):
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
+    """Delete a product by ID."""
     try:
-
-        cursor.execute("""
-            DELETE FROM products
-            WHERE id = ?
-        """, (product_id,))
-
-        connection.commit()
-
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("DELETE FROM products WHERE id = ?", (int(product_id),))
+            if cursor.rowcount == 0:
+                return False, "Product not found."
+            conn.commit()
         return True, "Product deleted successfully."
-
-    except Exception as error:
-
-        return False, str(error)
-
-    finally:
-
-        connection.close()
+    except Exception as exc:
+        return False, f"Database error: {exc}"
 
 
 # ============================================================
-# DASHBOARD STATISTICS
+# DASHBOARD STATS (SINGLE SQL QUERY FOR OLDER SYSTEMS)
 # ============================================================
-
 def get_dashboard_stats():
-
-    connection = get_connection()
-    cursor = connection.cursor()
-
-    # Total stock value
-    cursor.execute("""
-        SELECT
-            COALESCE(SUM(quantity * price), 0)
-
-        FROM products
-    """)
-
-    total_value = cursor.fetchone()[0]
-
-
-    # Low stock
-    cursor.execute("""
-        SELECT COUNT(*)
-
-        FROM products
-
-        WHERE quantity > 0
-        AND quantity <= 10
-    """)
-
-    low_stock = cursor.fetchone()[0]
-
-
-    # Total products
-    cursor.execute("""
-        SELECT COUNT(*)
-        FROM products
-    """)
-
-    total_products = cursor.fetchone()[0]
-
-
-    # Out of stock
-    cursor.execute("""
-        SELECT COUNT(*)
-
-        FROM products
-
-        WHERE quantity <= 0
-    """)
-
-    out_of_stock = cursor.fetchone()[0]
-
-
-    connection.close()
-
-
-    return {
-        "total_value": total_value,
-        "low_stock": low_stock,
-        "total_products": total_products,
-        "out_of_stock": out_of_stock
-    }
+    """Return aggregate inventory statistics using a single fast SQL query."""
+    threshold = get_low_stock_threshold()
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        cursor.execute(
+            """
+            SELECT
+                COUNT(*),
+                COALESCE(SUM(quantity * price), 0.0),
+                COALESCE(SUM(CASE WHEN quantity > 0 AND quantity <= ? THEN 1 ELSE 0 END), 0),
+                COALESCE(SUM(CASE WHEN quantity <= 0 THEN 1 ELSE 0 END), 0)
+            FROM products
+            """,
+            (threshold,),
+        )
+        row = cursor.fetchone()
+        return {
+            "total_products": row[0] if row else 0,
+            "total_value": float(row[1]) if row else 0.0,
+            "low_stock": row[2] if row else 0,
+            "out_of_stock": row[3] if row else 0,
+        }
 
 
 # ============================================================
-# IMPORT CSV
+# CSV IMPORT / EXPORT
 # ============================================================
-
 def import_products_from_csv(file_path):
-
+    """Batch import products from a CSV file using a single transaction."""
     added = 0
     skipped = 0
     errors = []
+    threshold = get_low_stock_threshold()
 
-    connection = get_connection()
-    cursor = connection.cursor()
+    with open(file_path, mode="r", encoding="utf-8-sig", newline="") as csvfile:
+        reader = csv.DictReader(csvfile)
+        if not reader.fieldnames:
+            raise ValueError("CSV file is empty or missing headers.")
 
-    try:
+        header_map = {h.strip().lower(): h for h in reader.fieldnames if h}
 
-        with open(
-            file_path,
-            "r",
-            newline="",
-            encoding="utf-8-sig"
-        ) as file:
+        def get_col(row_dict, *candidates):
+            for c in candidates:
+                if c in header_map:
+                    return (row_dict.get(header_map[c]) or "").strip()
+            return ""
 
-            reader = csv.DictReader(file)
+        with get_connection() as conn:
+            cursor = conn.cursor()
+            for idx, row in enumerate(reader, start=2):
+                sku = get_col(row, "sku", "product sku", "code")
+                name = get_col(row, "name", "product name", "product", "item")
+                category = get_col(row, "category", "cat", "group")
+                qty_str = get_col(row, "quantity", "qty", "stock")
+                price_str = get_col(row, "price", "unit price", "rate", "cost").replace("₹", "").replace(",", "")
 
-            required_columns = {
-                "SKU",
-                "Product Name",
-                "Category",
-                "Quantity",
-                "Price"
-            }
-
-            # Check columns
-            if not required_columns.issubset(
-                set(reader.fieldnames or [])
-            ):
-
-                return (
-                    0,
-                    0,
-                    [
-                        "Incorrect CSV format.",
-                        "Required columns:",
-                        "SKU, Product Name, Category, Quantity, Price"
-                    ]
-                )
-
-
-            for row_number, row in enumerate(
-                reader,
-                start=2
-            ):
+                if not all([sku, name, category, qty_str, price_str]):
+                    skipped += 1
+                    errors.append(f"Row {idx}: Missing required fields.")
+                    continue
 
                 try:
+                    qty = int(float(qty_str))
+                    price = float(price_str)
+                    if qty < 0 or price < 0:
+                        raise ValueError("Negative values not allowed.")
+                except ValueError:
+                    skipped += 1
+                    errors.append(f"Row {idx} (SKU {sku}): Invalid quantity or price.")
+                    continue
 
-                    sku = row["SKU"].strip()
-
-                    name = row["Product Name"].strip()
-
-                    category = row["Category"].strip()
-
-                    quantity = int(
-                        row["Quantity"]
-                    )
-
-                    price = float(
-                        row["Price"]
-                    )
-
-
-                    # Validation
-
-                    if not sku:
-                        raise ValueError(
-                            "SKU is empty."
-                        )
-
-                    if not name:
-                        raise ValueError(
-                            "Product name is empty."
-                        )
-
-                    if not category:
-                        raise ValueError(
-                            "Category is empty."
-                        )
-
-                    if quantity < 0:
-                        raise ValueError(
-                            "Quantity cannot be negative."
-                        )
-
-                    if price < 0:
-                        raise ValueError(
-                            "Price cannot be negative."
-                        )
-
-
-                    status = get_stock_status(
-                        quantity
-                    )
-
-
-                    cursor.execute("""
-                        INSERT INTO products
-                        (
-                            sku,
-                            name,
-                            category,
-                            quantity,
-                            price,
-                            status
-                        )
-
+                status = compute_status(qty, threshold)
+                try:
+                    cursor.execute(
+                        """
+                        INSERT INTO products (sku, name, category, quantity, price, status)
                         VALUES (?, ?, ?, ?, ?, ?)
-                    """, (
-                        sku,
-                        name,
-                        category,
-                        quantity,
-                        price,
-                        status
-                    ))
-
-
+                        """,
+                        (sku, name, category, qty, price, status),
+                    )
                     added += 1
-
-
                 except sqlite3.IntegrityError:
-
                     skipped += 1
+                    errors.append(f"Row {idx}: Duplicate SKU '{sku}'.")
 
-                    errors.append(
-                        f"Row {row_number}: "
-                        f"SKU '{row.get('SKU', '')}' "
-                        f"already exists."
-                    )
-
-
-                except Exception as error:
-
-                    skipped += 1
-
-                    errors.append(
-                        f"Row {row_number}: {error}"
-                    )
-
-
-        connection.commit()
-
-
-    except Exception as error:
-
-        connection.rollback()
-
-        return (
-            added,
-            skipped,
-            [str(error)]
-        )
-
-
-    finally:
-
-        connection.close()
-
+            conn.commit()
 
     return added, skipped, errors
 
 
-# ============================================================
-# EXPORT CSV
-# ============================================================
-
 def export_products_to_csv(file_path):
-
+    """Export all products to a CSV file."""
     products = get_products()
-
-    with open(
-        file_path,
-        "w",
-        newline="",
-        encoding="utf-8"
-    ) as file:
-
-        writer = csv.writer(file)
-
-        writer.writerow([
-            "ID",
-            "SKU",
-            "Product Name",
-            "Category",
-            "Quantity",
-            "Price",
-            "Status"
-        ])
-
-
-        for product in products:
-
-            writer.writerow(product)
-
-
+    with open(file_path, mode="w", encoding="utf-8", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["ID", "SKU", "Product Name", "Category", "Quantity", "Price", "Status"])
+        writer.writerows(products)
     return len(products)
-
-
-# ============================================================
-# CREATE DATABASE WHEN THIS FILE IS RUN
-# ============================================================
-
-if __name__ == "__main__":
-
-    initialize_database()
-
-    print("Database initialized successfully.")
-
-    print(
-        f"Database location:\n{DATABASE_FILE}"
-    )
