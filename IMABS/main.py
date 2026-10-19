@@ -33,6 +33,7 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import os
 import tempfile
 import database as _db_module
+print(f"Active DB Path: {_db_module.DB_PATH}")
 from database import (
     initialize_database,
     add_product,

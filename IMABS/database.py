@@ -1,80 +1,43 @@
 import csv
 import os
 import sqlite3
-import tempfile
-from datetime import datetime
+import sys
 from pathlib import Path
 
 # ============================================================
-# DATABASE CONFIGURATION (WITH ONEDRIVE / UNICODE PATH FALLBACK)
+# PERSISTENT DATABASE LOCATION (NEXT TO .EXE OR MAIN.PY)
 # ============================================================
-PROJECT_ROOT = Path(__file__).resolve().parent
+if getattr(sys, "frozen", False):
+    APP_DIR = Path(sys.executable).resolve().parent
+else:
+    APP_DIR = Path(__file__).resolve().parent
+
+DB_FOLDER = APP_DIR / "Database"
+DB_PATH = DB_FOLDER / "inventory.db"
+
+# Ensure directory exists immediately
+DB_FOLDER.mkdir(parents=True, exist_ok=True)
+
 LOW_STOCK_THRESHOLD = 10
 
 
-def _resolve_writable_db_path() -> Path:
-    """
-    Find a writable SQLite database path.
-    If the project is inside a OneDrive / Unicode folder (e.g., OneDrive\\ドキュメント\\Desktop)
-    or a Windows Controlled Folder Access directory where SQLite cannot open/create files,
-    automatically fall back to %LOCALAPPDATA%\\IMABS or ~/IMABS_Data.
-    """
-    candidates = [
-        PROJECT_ROOT / "Database" / "inventory.db",
-        PROJECT_ROOT / "inventory.db",
-    ]
-    local_app_data = os.environ.get("LOCALAPPDATA")
-    if local_app_data:
-        candidates.append(Path(local_app_data) / "IMABS" / "Database" / "inventory.db")
-    candidates.extend([
-        Path.home() / "IMABS_Data" / "inventory.db",
-        Path(tempfile.gettempdir()) / "IMABS" / "inventory.db",
-    ])
-
-    for candidate in candidates:
-        try:
-            candidate.parent.mkdir(parents=True, exist_ok=True)
-            conn = sqlite3.connect(str(candidate))
-            conn.execute("CREATE TABLE IF NOT EXISTS _db_check (id INTEGER);")
-            conn.commit()
-            conn.close()
-            return candidate
-        except Exception:
-            continue
-
-    # Last-resort fallback
-    fallback = Path(tempfile.gettempdir()) / "inventory.db"
-    return fallback
-
-
-DB_PATH = _resolve_writable_db_path()
-DB_FOLDER = DB_PATH.parent
-
-
 def get_connection():
-    """Return an optimized SQLite connection with safe fallback for OneDrive/Windows."""
-    global DB_PATH, DB_FOLDER
-    try:
-        DB_FOLDER.mkdir(parents=True, exist_ok=True)
-        conn = sqlite3.connect(str(DB_PATH))
-    except sqlite3.OperationalError:
-        DB_PATH = _resolve_writable_db_path()
-        DB_FOLDER = DB_PATH.parent
-        conn = sqlite3.connect(str(DB_PATH))
+    """Return SQLite connection pointing to APP_DIR/Database/inventory.db."""
+    DB_FOLDER.mkdir(parents=True, exist_ok=True)
+    conn = sqlite3.connect(str(DB_PATH))
 
+    # Using DELETE mode avoids WAL checkpoint lock bugs when apps close unexpectedly
     try:
-        conn.execute("PRAGMA journal_mode=WAL;")
+        conn.execute("PRAGMA journal_mode=DELETE;")
     except sqlite3.Error:
-        try:
-            conn.execute("PRAGMA journal_mode=DELETE;")
-        except sqlite3.Error:
-            pass
+        pass
 
     try:
         conn.execute("PRAGMA synchronous=NORMAL;")
         conn.execute("PRAGMA foreign_keys=ON;")
     except sqlite3.Error:
         pass
+
     return conn
 
 
@@ -104,11 +67,8 @@ def compute_status(quantity: int, threshold: int = None) -> str:
     return "In Stock"
 
 
-# ============================================================
-# INITIALIZE DATABASE
-# ============================================================
 def initialize_database():
-    """Create products, invoices, invoice_items, and app_settings tables."""
+    """Ensure all required tables and indices exist."""
     with get_connection() as conn:
         cursor = conn.cursor()
         cursor.execute(
@@ -165,21 +125,12 @@ def initialize_database():
             )
             """
         )
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku)"
-        )
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_products_name ON products(name)"
-        )
-        cursor.execute(
-            "CREATE INDEX IF NOT EXISTS idx_products_category ON products(category)"
-        )
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_products_sku ON products(sku)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_products_name ON products(name)")
+        cursor.execute("CREATE INDEX IF NOT EXISTS idx_products_category ON products(category)")
         conn.commit()
 
 
-# ============================================================
-# CRUD OPERATIONS (PRODUCTS)
-# ============================================================
 def add_product(sku, name, category, quantity, price):
     """Add a new product to the database."""
     status = compute_status(int(quantity))
@@ -195,7 +146,7 @@ def add_product(sku, name, category, quantity, price):
             conn.commit()
         return True, f"Product '{name}' added successfully."
     except sqlite3.IntegrityError:
-        return False, f"SKU '{sku}' already exists. Please use a unique SKU."
+        return False, f"SKU '{sku}' already exists."
     except Exception as exc:
         return False, f"Database error: {exc}"
 
@@ -277,11 +228,8 @@ def delete_product(product_id):
         return False, f"Database error: {exc}"
 
 
-# ============================================================
-# DASHBOARD STATS (SINGLE SQL QUERY FOR OLDER SYSTEMS)
-# ============================================================
 def get_dashboard_stats():
-    """Return aggregate inventory statistics using a single fast SQL query."""
+    """Return aggregate inventory statistics using a single SQL query."""
     threshold = get_low_stock_threshold()
     with get_connection() as conn:
         cursor = conn.cursor()
@@ -304,56 +252,76 @@ def get_dashboard_stats():
             "out_of_stock": row[3] if row else 0,
         }
 
-
-# ============================================================
-# CSV IMPORT / EXPORT
-# ============================================================
 def import_products_from_csv(file_path):
-    """Batch import products from a CSV file using a single transaction."""
+    """
+    Safely import products from a CSV file.
+    Always returns: (added_count, skipped_count, list_of_error_strings)
+    """
     added = 0
     skipped = 0
     errors = []
-    threshold = get_low_stock_threshold()
+    
+    if not file_path or not os.path.isfile(file_path):
+        return 0, 0, ["Selected file does not exist."]
 
-    with open(file_path, mode="r", encoding="utf-8-sig", newline="") as csvfile:
-        reader = csv.DictReader(csvfile)
-        if not reader.fieldnames:
-            raise ValueError("CSV file is empty or missing headers.")
+    try:
+        threshold = get_low_stock_threshold()
 
-        header_map = {h.strip().lower(): h for h in reader.fieldnames if h}
+        with open(file_path, mode="r", encoding="utf-8-sig", errors="replace", newline="") as csvfile:
+            reader = csv.DictReader(csvfile)
+            
+            if not reader.fieldnames:
+                return 0, 0, ["CSV file is empty or missing header columns."]
 
-        def get_col(row_dict, *candidates):
-            for c in candidates:
-                if c in header_map:
-                    return (row_dict.get(header_map[c]) or "").strip()
-            return ""
+            # Build case-insensitive header mapping
+            header_map = {str(h).strip().lower(): h for h in reader.fieldnames if h}
 
-        with get_connection() as conn:
-            cursor = conn.cursor()
-            for idx, row in enumerate(reader, start=2):
-                sku = get_col(row, "sku", "product sku", "code")
-                name = get_col(row, "name", "product name", "product", "item")
-                category = get_col(row, "category", "cat", "group")
-                qty_str = get_col(row, "quantity", "qty", "stock")
-                price_str = get_col(row, "price", "unit price", "rate", "cost").replace("₹", "").replace(",", "")
+            def get_col(row_dict, *candidates):
+                for c in candidates:
+                    if c in header_map:
+                        val = row_dict.get(header_map[c])
+                        return str(val).strip() if val is not None else ""
+                return ""
 
-                if not all([sku, name, category, qty_str, price_str]):
-                    skipped += 1
-                    errors.append(f"Row {idx}: Missing required fields.")
-                    continue
+            with get_connection() as conn:
+                cursor = conn.cursor()
+                for idx, row in enumerate(reader, start=2):
+                    sku = get_col(row, "sku", "product sku", "code", "barcode", "id")
+                    name = get_col(row, "name", "product name", "product", "item", "title")
+                    category = get_col(row, "category", "cat", "group", "type") or "General"
+                    qty_str = get_col(row, "quantity", "qty", "stock", "count")
+                    price_str = get_col(row, "price", "unit price", "rate", "cost", "mrp")
 
-                try:
-                    qty = int(float(qty_str))
-                    price = float(price_str)
-                    if qty < 0 or price < 0:
-                        raise ValueError("Negative values not allowed.")
-                except ValueError:
-                    skipped += 1
-                    errors.append(f"Row {idx} (SKU {sku}): Invalid quantity or price.")
-                    continue
+                    # Clean currency symbols and commas
+                    price_str = price_str.replace("₹", "").replace("$", "").replace(",", "").strip()
+                    qty_str = qty_str.replace(",", "").strip()
 
-                status = compute_status(qty, threshold)
-                try:
+                    # Check required fields
+                    if not sku or not name or qty_str == "" or price_str == "":
+                        skipped += 1
+                        errors.append(f"Row {idx}: Missing essential fields (SKU, Name, Quantity, or Price).")
+                        continue
+
+                    # Parse numbers safely
+                    try:
+                        qty = int(float(qty_str))
+                        price = float(price_str)
+                        if qty < 0 or price < 0:
+                            raise ValueError()
+                    except ValueError:
+                        skipped += 1
+                        errors.append(f"Row {idx} ('{sku}'): Invalid number format for quantity ('{qty_str}') or price ('{price_str}').")
+                        continue
+
+                    # Check for duplicate SKU before inserting
+                    cursor.execute("SELECT 1 FROM products WHERE sku = ?", (sku,))
+                    if cursor.fetchone():
+                        skipped += 1
+                        errors.append(f"Row {idx}: SKU '{sku}' already exists.")
+                        continue
+
+                    status = compute_status(qty, threshold)
+
                     cursor.execute(
                         """
                         INSERT INTO products (sku, name, category, quantity, price, status)
@@ -362,14 +330,14 @@ def import_products_from_csv(file_path):
                         (sku, name, category, qty, price, status),
                     )
                     added += 1
-                except sqlite3.IntegrityError:
-                    skipped += 1
-                    errors.append(f"Row {idx}: Duplicate SKU '{sku}'.")
 
-            conn.commit()
+                conn.commit()
 
+    except Exception as exc:
+        errors.append(f"File reading error: {str(exc)}")
+
+    # Always return 3 items, never None
     return added, skipped, errors
-
 
 def export_products_to_csv(file_path):
     """Export all products to a CSV file."""
