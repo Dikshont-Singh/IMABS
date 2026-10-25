@@ -17,7 +17,7 @@ IMABS helps manage products, stock levels, CSV data, inventory reports, and basi
 - 📈 Inventory reports and charts
 - ⚠️ Low-stock and out-of-stock tracking
 - 🧾 Billing module
-- 🎨 Clean CustomTkinter interface
+- 🎨 Clean interface
 - 🖥️ Windows `.exe` support using PyInstaller
 
 ---
