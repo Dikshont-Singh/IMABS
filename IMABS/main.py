@@ -441,12 +441,12 @@ class DashboardApp(ctk.CTk):
         return {
             "store_name": "IMABS",
             "store_tagline": "Inventory & Billing Management System",
-            "store_address": "New Delhi, India",
-            "store_contact": "+91 9876543210  |  GSTIN: 07AAAAA0000A1Z5",
+            "store_address": "Varanasi, India",
+            "store_contact": "+91 xxxxxxxx  |  GSTIN: xxxxxxxxxxxxxxx",
             "default_tax_pct": "18",
             "default_discount_pct": "0",
             "low_stock_threshold": "10",
-            "currency_symbol": "₹",
+            "currency_symbol": "Rs",
             "invoice_prefix": "INV",
         }
 
