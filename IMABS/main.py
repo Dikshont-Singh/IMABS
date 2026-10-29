@@ -1,3 +1,4 @@
+# IMPORTS
 import sys
 import csv
 import shutil
@@ -6,18 +7,13 @@ from pathlib import Path
 from datetime import datetime
 from collections import defaultdict
 
-# ============================================================
-# FIX IMPORT PATH
-# ============================================================
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 if str(Path(__file__).resolve().parent) not in sys.path:
     sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-# ============================================================
-# IMPORTS
-# ============================================================
+
 import tkinter as tk
 import customtkinter as ctk
 from tkinter import (
@@ -48,11 +44,7 @@ from database import (
 
 
 def _ensure_writable_sqlite_path() -> Path:
-    """
-    Ensure SQLite can open and write to the database file even when the project
-    is stored inside a Windows OneDrive or Unicode folder (e.g. OneDrive\\ドキュメント\\Desktop)
-    or a folder protected by Windows Controlled Folder Access.
-    """
+    
     script_dir = Path(__file__).resolve().parent
     candidates = []
     if hasattr(_db_module, "DB_PATH"):
@@ -76,7 +68,7 @@ def _ensure_writable_sqlite_path() -> Path:
             conn.execute("CREATE TABLE IF NOT EXISTS _db_check (id INTEGER);")
             conn.commit()
             conn.close()
-            # Patch database module globals so all CRUD calls use this verified path
+          
             _db_module.DB_PATH = candidate
             _db_module.DB_FOLDER = candidate.parent
 
@@ -110,15 +102,13 @@ def _ensure_writable_sqlite_path() -> Path:
 
 ACTIVE_DB_PATH = _ensure_writable_sqlite_path()
 
-# ============================================================
 # APPEARANCE
-# ============================================================
+
 ctk.set_appearance_mode("light")
 ctk.set_default_color_theme("blue")
 
-# ============================================================
-# COLORS (ORIGINAL THEME STRICTLY PRESERVED)
-# ============================================================
+# COLORS 
+
 NAVY = "#172554"
 NAVY_HOVER = "#243B78"
 BLUE = "#2563EB"
@@ -137,7 +127,7 @@ BORDER = "#E2E8F0"
 TEXT = "#0F172A"
 MUTED = "#64748B"
 
-# Cohesive chart palette matching the app's Navy/Blue/Teal/Amber/Slate theme
+
 CHART_PALETTE = [
     "#2563EB",  # Primary Blue
     "#0F766E",  # Teal Green
@@ -145,13 +135,11 @@ CHART_PALETTE = [
     "#0D9488",  # Bright Teal
     "#3B82F6",  # Sky Blue
     "#D97706",  # Amber Orange
-    "#64748B",  # Slate Muted (for "Others")
+    "#64748B",  # Slate Muted 
 ]
 
+# SIDEBAR BUTTON 
 
-# ============================================================
-# SIDEBAR BUTTON (OPTIMIZED WITH CACHED FONTS)
-# ============================================================
 class SidebarButton(ctk.CTkButton):
     _font_normal = None
     _font_bold = None
@@ -186,17 +174,15 @@ class SidebarButton(ctk.CTkButton):
                 font=SidebarButton._font_normal
             )
 
-
-# ============================================================
 # DASHBOARD APPLICATION
-# ============================================================
+
 class DashboardApp(ctk.CTk):
     def __init__(self):
         super().__init__()
 
-        # ----------------------------------------------------
+       
         # STATE & PERFORMANCE CACHE FOR OLDER SYSTEMS
-        # ----------------------------------------------------
+       
         self.current_page = "Dashboard"
         self.inventory_tree = None
         self.dashboard_tree = None
@@ -214,22 +200,19 @@ class DashboardApp(ctk.CTk):
         self.inv_status_filter_var = None
         self.inv_sort_var = None
 
-        # ----------------------------------------------------
         # DATABASE & PERSISTENT SETTINGS
-        # ----------------------------------------------------
+       
         initialize_database()
         self._init_billing_and_settings_tables()
         self.app_settings = self._load_app_settings()
-
-        # ----------------------------------------------------
+      
         # WINDOW
-        # ----------------------------------------------------
+        
         self.title(f"{self.app_settings['store_name']} - Inventory Management System")
         self.geometry("1400x830")
         self.minsize(1100, 650)
         self.configure(fg_color=PAGE_BG)
 
-        # Cache common fonts once to avoid recreating font objects on older CPUs
         self.font_page_title = ctk.CTkFont(size=30, weight="bold")
         self.font_section_title = ctk.CTkFont(size=18, weight="bold")
         self.font_card_title = ctk.CTkFont(size=12, weight="bold")
@@ -240,32 +223,28 @@ class DashboardApp(ctk.CTk):
         self.font_regular_12 = ctk.CTkFont(size=12)
         self.font_small_11 = ctk.CTkFont(size=11)
 
-        # Configure ttk Treeview styles once at startup
+        # Configure ttk Treeview
         self._setup_treeview_styles()
 
-        # Bind global POS keyboard shortcuts (active when on Billing page)
+        # Bind global POS keyboard shortcuts 
         self._bind_pos_keyboard_shortcuts()
 
-        # ----------------------------------------------------
         # GRID
-        # ----------------------------------------------------
+       
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
-        # ----------------------------------------------------
         # BUILD GUI
-        # ----------------------------------------------------
+        
         self.build_sidebar()
         self.build_main_area()
 
-        # ----------------------------------------------------
         # START DASHBOARD
-        # ----------------------------------------------------
+       
         self.show_page("Dashboard")
 
-    # ========================================================
     # KEYBOARD SHORTCUTS FOR POS BILLING TERMINAL
-    # ========================================================
+    
     def _bind_pos_keyboard_shortcuts(self):
         self.bind_all("<F1>", self._shortcut_new_transaction)
         self.bind_all("<F2>", self._shortcut_focus_scan_search)
@@ -342,9 +321,9 @@ class DashboardApp(ctk.CTk):
             if hasattr(self, "pos_search_entry") and self.pos_search_entry.winfo_exists():
                 self.pos_search_entry.focus_set()
 
-    # ========================================================
-    # TREEVIEW STYLE INITIALIZATION (RUNS ONCE)
-    # ========================================================
+   
+    # TREEVIEW STYLE INITIALIZATION 
+    
     def _setup_treeview_styles(self):
         style = ttk.Style()
         style.theme_use("clam")
@@ -374,9 +353,8 @@ class DashboardApp(ctk.CTk):
             background=[("active", "#CBD5E1")]
         )
 
-    # ========================================================
     # SQLITE STORAGE FOR BILLING & APP SETTINGS
-    # ========================================================
+   
     def _get_billing_db_path(self):
         if hasattr(_db_module, "DB_PATH"):
             p = Path(getattr(_db_module, "DB_PATH"))
@@ -477,7 +455,6 @@ class DashboardApp(ctk.CTk):
                     """,
                     (str(k), str(v)),
                 )
-            # Also recalculate product statuses against the new low_stock_threshold
             try:
                 threshold = max(1, int(float(new_settings.get("low_stock_threshold", 10))))
                 cur.execute(
@@ -598,9 +575,8 @@ class DashboardApp(ctk.CTk):
         except Exception:
             return []
 
-    # ========================================================
     # SIDEBAR
-    # ========================================================
+   
     def build_sidebar(self):
         sidebar = ctk.CTkFrame(
             self,
@@ -636,9 +612,8 @@ class DashboardApp(ctk.CTk):
             button.pack(fill="x", padx=10, pady=4)
             self.nav_buttons[item] = button
 
-    # ========================================================
     # MAIN AREA
-    # ========================================================
+   
     def build_main_area(self):
         self.main = ctk.CTkFrame(
             self,
@@ -701,9 +676,9 @@ class DashboardApp(ctk.CTk):
         )
         self.content.grid_columnconfigure(0, weight=1)
 
-    # ========================================================
-    # CLEAR CONTENT & MEMORY CLEANUP
-    # ========================================================
+
+    # MEMORY CLEANUP
+    
     def clear_content(self):
         self.inventory_tree = None
         self.dashboard_tree = None
@@ -718,9 +693,8 @@ class DashboardApp(ctk.CTk):
         for widget in self.content.winfo_children():
             widget.destroy()
 
-    # ========================================================
     # PAGE NAVIGATION
-    # ========================================================
+
     def show_page(self, page):
         self.current_page = page
         for name, button in self.nav_buttons.items():
@@ -738,16 +712,12 @@ class DashboardApp(ctk.CTk):
             self.show_reports()
         elif page == "Settings":
             self.show_settings()
-
-    # ========================================================
-    # REDESIGNED DASHBOARD (EXECUTIVE COMMAND CENTER)
-    # ========================================================
+   
     def show_dashboard(self):
         self.clear_content()
-
-        # ----------------------------------------------------
+       
         # 1. HEADER WITH QUICK-ACTION TOOLBAR
-        # ----------------------------------------------------
+        
         header = ctk.CTkFrame(self.content, fg_color="transparent")
         header.pack(fill="x", pady=(0, 18))
 
@@ -814,10 +784,7 @@ class DashboardApp(ctk.CTk):
             font=self.font_bold_12,
             command=self.show_dashboard
         ).pack(side="left")
-
-        # ----------------------------------------------------
-        # 2. 5 EXECUTIVE KPI CARDS (WITH ACCENT BARS)
-        # ----------------------------------------------------
+        
         stats = get_dashboard_stats()
         all_products = get_products()
         total_units = sum(int(p[4]) for p in all_products)
@@ -871,15 +838,11 @@ class DashboardApp(ctk.CTk):
             RED
         )
 
-        # ----------------------------------------------------
-        # 3. TWO-COLUMN MAIN DASHBOARD WORKSPACE
-        # ----------------------------------------------------
         workspace = ctk.CTkFrame(self.content, fg_color="transparent")
         workspace.pack(fill="both", expand=True)
         workspace.grid_columnconfigure(0, weight=7)
         workspace.grid_columnconfigure(1, weight=3)
 
-        # LEFT PANEL: LIVE INVENTORY EXPLORER WITH STATUS FILTER PILLS
         left_panel = ctk.CTkFrame(
             workspace,
             fg_color=WHITE,
@@ -909,7 +872,6 @@ class DashboardApp(ctk.CTk):
             font=self.font_small_11
         ).pack(anchor="w", pady=(2, 0))
 
-        # Status Filter Pills (All | In Stock | Low Stock | Out of Stock)
         filter_bar = ctk.CTkFrame(left_top, fg_color="transparent")
         filter_bar.pack(side="right")
 
@@ -940,11 +902,9 @@ class DashboardApp(ctk.CTk):
         )
         self.dashboard_tree.bind("<Double-1>", self._on_dashboard_tree_double_click)
 
-        # RIGHT PANEL: STACKED ACTION CARDS (1-CLICK RESTOCK + RECENT SALES)
         right_col = ctk.CTkFrame(workspace, fg_color="transparent")
         right_col.grid(row=0, column=1, sticky="nsew", padx=(8, 0))
 
-        # Card A: Priority Restock Action Center (1-Click +10 Stock)
         restock_card = ctk.CTkFrame(
             right_col,
             fg_color=WHITE,
@@ -1047,7 +1007,6 @@ class DashboardApp(ctk.CTk):
                     command=lambda p=prod: self._quick_restock_product(p, 10)
                 ).pack(side="right", padx=8, pady=5)
 
-        # Card B: Recent Sales / Invoices Activity Feed
         sales_card = ctk.CTkFrame(
             right_col,
             fg_color=WHITE,
@@ -1162,9 +1121,8 @@ class DashboardApp(ctk.CTk):
         else:
             messagebox.showerror("Restock Error", msg, parent=self)
 
-    # ========================================================
     # STAT CARD
-    # ========================================================
+   
     def create_stat_card(self, parent, column, title, value):
         card = ctk.CTkFrame(
             parent,
@@ -1191,15 +1149,9 @@ class DashboardApp(ctk.CTk):
         )
         value_label.pack(anchor="w", padx=20, pady=(0, 20))
 
-    # ========================================================
-    # REDESIGNED INVENTORY PAGE (FILTER, SORT & STOCK CONTROL)
-    # ========================================================
     def show_inventory(self):
         self.clear_content()
 
-        # ----------------------------------------------------
-        # 1. HEADER & ACTION BUTTONS BAR
-        # ----------------------------------------------------
         header = ctk.CTkFrame(self.content, fg_color="transparent")
         header.pack(fill="x", pady=(0, 14))
 
@@ -1267,9 +1219,8 @@ class DashboardApp(ctk.CTk):
             command=self.import_csv
         ).pack(side="right", padx=(0, 8))
 
-        # ----------------------------------------------------
-        # 2. FILTER, SORT & BULK CONTROL BAR CARD
-        # ----------------------------------------------------
+        # FILTER, SORT & BULK CONTROL BAR CARD
+        
         filter_card = ctk.CTkFrame(
             self.content,
             fg_color=WHITE,
@@ -1371,7 +1322,6 @@ class DashboardApp(ctk.CTk):
             command=self._reset_inventory_filters
         ).pack(side="left")
 
-        # Right side row action buttons (Edit Selected / Delete Selected)
         ctk.CTkButton(
             f_row,
             text="🗑 Delete",
@@ -1394,9 +1344,6 @@ class DashboardApp(ctk.CTk):
             command=self.edit_selected_product
         ).pack(side="right", padx=(0, 8))
 
-        # ----------------------------------------------------
-        # 3. TABLE PANEL + LIVE FILTER SUMMARY FOOTER
-        # ----------------------------------------------------
         self.inventory_panel = ctk.CTkFrame(
             self.content,
             fg_color=WHITE,
@@ -1458,9 +1405,8 @@ class DashboardApp(ctk.CTk):
 
         return products
 
-    # ========================================================
-    # INVENTORY TABLE (WITH STOCK VALUE COLUMN)
-    # ========================================================
+    # INVENTORY TABLE 
+  
     def create_inventory_table(self, parent, products, height=13, include_total_value=True):
         frame = ctk.CTkFrame(parent, fg_color="transparent")
         frame.pack(fill="both", expand=True, padx=20, pady=(14, 18))
@@ -1598,9 +1544,8 @@ class DashboardApp(ctk.CTk):
                 )
             tree.insert("", "end", values=formatted_row, tags=tags)
 
-    # ========================================================
-    # REFRESH INVENTORY (IN-PLACE OPTIMIZED)
-    # ========================================================
+    # REFRESH INVENTORY
+    
     def refresh_inventory(self):
         if not hasattr(self, "inventory_panel") or not self.inventory_panel.winfo_exists():
             return
@@ -1630,9 +1575,8 @@ class DashboardApp(ctk.CTk):
         self.inventory_tree.bind("<Double-1>", self.edit_selected_product)
         self.inventory_tree.bind("<Button-3>", self.show_context_menu)
 
-    # ========================================================
-    # DEBOUNCED SEARCH (WORKS SAFELY ACROSS PAGES)
-    # ========================================================
+    # DEBOUNCED SEARCH 
+    
     def _on_search_keyrelease(self, event=None):
         if self._search_after_id is not None:
             try:
@@ -1651,9 +1595,6 @@ class DashboardApp(ctk.CTk):
             filtered = self._get_filtered_dashboard_products(query)
             self._populate_tree(self.dashboard_tree, filtered, include_total_value=True)
 
-    # ========================================================
-    # QUICK STOCK ADJUSTMENT MODAL
-    # ========================================================
     def open_quick_stock_adjust(self):
         selected_values = None
         if self.inventory_tree is not None and self.inventory_tree.winfo_exists():
@@ -1762,10 +1703,9 @@ class DashboardApp(ctk.CTk):
             hover_color=BLUE_HOVER,
             command=save_exact
         ).pack(fill="x", padx=40)
-
-    # ========================================================
-    # ADD PRODUCT WINDOW (WITH AUTO-SKU GENERATOR)
-    # ========================================================
+   
+    # ADD PRODUCT WINDOW
+   
     def open_add_product(self):
         window = ctk.CTkToplevel(self)
         window.title("Add Product")
@@ -1783,7 +1723,6 @@ class DashboardApp(ctk.CTk):
         title.pack(pady=(22, 16))
 
         fields = {}
-        # SKU Row with Auto-Generate Button
         sku_lbl_row = ctk.CTkFrame(window, fg_color="transparent")
         sku_lbl_row.pack(fill="x", padx=40, pady=(6, 3))
         ctk.CTkLabel(sku_lbl_row, text="SKU", anchor="w", text_color=TEXT).pack(side="left")
@@ -1883,9 +1822,8 @@ class DashboardApp(ctk.CTk):
         )
         save_button.pack(fill="x", padx=40, pady=28)
 
-    # ========================================================
-    # EDIT PRODUCT (FIXED ROW CHECK & VALIDATION)
-    # ========================================================
+    # EDIT PRODUCT 
+    
     def edit_selected_product(self, event=None):
         if self.inventory_tree is None or not self.inventory_tree.winfo_exists():
             return
@@ -1908,9 +1846,8 @@ class DashboardApp(ctk.CTk):
         if values:
             self.open_edit_product(values)
 
-    # ========================================================
     # EDIT WINDOW
-    # ========================================================
+   
     def open_edit_product(self, values):
         window = ctk.CTkToplevel(self)
         window.title("Edit Product")
@@ -2016,9 +1953,6 @@ class DashboardApp(ctk.CTk):
         )
         save_button.pack(fill="x", padx=40, pady=30)
 
-    # ========================================================
-    # RIGHT CLICK MENU (WITH QUICK STOCK & POS CART ACTIONS)
-    # ========================================================
     def show_context_menu(self, event):
         if self.inventory_tree is None or not self.inventory_tree.winfo_exists():
             return
@@ -2100,9 +2034,8 @@ class DashboardApp(ctk.CTk):
             parent=self
         )
 
-    # ========================================================
     # DELETE PRODUCT
-    # ========================================================
+   
     def delete_selected_product(self):
         if self.inventory_tree is None or not self.inventory_tree.winfo_exists():
             return
@@ -2136,9 +2069,7 @@ class DashboardApp(ctk.CTk):
         else:
             messagebox.showerror("Error", message)
 
-    # ========================================================
     # IMPORT CSV
-    # ========================================================
     def import_csv(self):
         file_path = filedialog.askopenfilename(
             title="Select Inventory CSV",
@@ -2178,9 +2109,7 @@ class DashboardApp(ctk.CTk):
                 f"Could not import CSV file.\n\n{error}"
             )
 
-    # ========================================================
     # EXPORT CSV
-    # ========================================================
     def export_csv(self):
         file_path = filedialog.asksaveasfilename(
             title="Export Inventory",
@@ -2203,16 +2132,10 @@ class DashboardApp(ctk.CTk):
                 f"Could not export CSV.\n\n{error}"
             )
 
-    # ========================================================
-    # REFRESH DASHBOARD
-    # ========================================================
     def refresh_dashboard_if_needed(self):
         if self.current_page == "Dashboard":
             self.show_dashboard()
 
-    # ========================================================
-    # REDESIGNED POS BILLING & INVOICING TERMINAL
-    # ========================================================
     def show_billing(self):
         self._billing_products = []
         for p in get_products():
@@ -2226,7 +2149,7 @@ class DashboardApp(ctk.CTk):
                 "status": str(p[6])
             })
 
-        # 1. POS TERMINAL HEADER CARD
+       
         pos_header_card = ctk.CTkFrame(
             self.content,
             fg_color=WHITE,
@@ -2397,7 +2320,6 @@ class DashboardApp(ctk.CTk):
         )
         self.payment_dropdown.grid(row=0, column=5, padx=(0, 14), pady=8, sticky="we")
 
-        # 2. MAIN TWO-COLUMN POS WORKSPACE
         workspace = ctk.CTkFrame(self.content, fg_color="transparent")
         workspace.pack(fill="both", expand=True)
         workspace.grid_columnconfigure(0, weight=7)
@@ -2578,7 +2500,6 @@ class DashboardApp(ctk.CTk):
         self.cart_rows_container.pack(fill="both", expand=True, padx=16, pady=(0, 14))
         self.cart_rows_container.grid_columnconfigure(0, weight=1)
 
-        # RIGHT COLUMN: CART SUMMARY PANEL
         right_col = ctk.CTkFrame(workspace, fg_color="transparent")
         right_col.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
 
@@ -2752,7 +2673,6 @@ class DashboardApp(ctk.CTk):
             font=self.font_small_11
         ).pack(pady=(2, 14))
 
-        # 3. BOTTOM SECTION: RECENT INVOICES HISTORY
         history_card = ctk.CTkFrame(
             self.content,
             fg_color=WHITE,
@@ -2851,9 +2771,6 @@ class DashboardApp(ctk.CTk):
         val_lbl.pack(side="right")
         return val_lbl
 
-    # ========================================================
-    # POS LIVE SEARCH & BARCODE/SKU ADD ENGINE
-    # ========================================================
     def _on_pos_search_keyrelease(self, event=None):
         if event and event.keysym in ("Up", "Down", "Return", "Escape"):
             return
@@ -3082,9 +2999,6 @@ class DashboardApp(ctk.CTk):
 
         self._refresh_cart_table()
 
-    # ========================================================
-    # INTERACTIVE POS SHOPPING CART ROWS (- / + STEPPER & DELETE)
-    # ========================================================
     def _change_cart_item_qty(self, product_id, delta):
         target = next((item for item in self.cart_items if item["id"] == product_id), None)
         if not target:
@@ -3873,9 +3787,8 @@ class DashboardApp(ctk.CTk):
                 parent=self
             )
 
-    # ========================================================
-    # REPORTS (REDESIGNED EXECUTIVE ANALYTICS DASHBOARD)
-    # ========================================================
+    # REPORTS 
+    =
     @staticmethod
     def _format_inr_compact(value: float) -> str:
         """Format currency values compactly (e.g., ₹1.42L, ₹56.9K, ₹850)."""
@@ -4156,9 +4069,6 @@ class DashboardApp(ctk.CTk):
 
         self._build_restock_watchlist_table(alert_panel, restock_items)
 
-    # ========================================================
-    # REPORT SUMMARY CARD (WITH SUBTITLE CONTEXT)
-    # ========================================================
     def create_report_summary_card(self, parent, column, title, value, subtext, accent):
         card = ctk.CTkFrame(
             parent,
@@ -4202,9 +4112,7 @@ class DashboardApp(ctk.CTk):
             font=ctk.CTkFont(size=11)
         ).pack(anchor="w")
 
-    # ========================================================
     # CHART PANEL
-    # ========================================================
     def create_chart_panel(self, parent, row, column, title, subtitle):
         panel = ctk.CTkFrame(
             parent,
@@ -4234,9 +4142,7 @@ class DashboardApp(ctk.CTk):
 
         return panel
 
-    # ========================================================
-    # CHART 1: HORIZONTAL RANKED BAR - QUANTITY BY CATEGORY
-    # ========================================================
+    # CHART 1  HORIZONTAL RANKED BAR - QUANTITY BY CATEGORY
     def create_category_quantity_chart(self, parent, data, top_n=8):
         figure = Figure(figsize=(6.2, 3.2), dpi=90)
         self._active_figures.append(figure)
@@ -4301,9 +4207,7 @@ class DashboardApp(ctk.CTk):
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=14, pady=(4, 12))
 
-    # ========================================================
-    # CHART 2: DONUT CHART - STOCK DISTRIBUTION (TOP 6 + OTHERS)
-    # ========================================================
+    # CHART 2: DONUT CHART - STOCK DISTRIBUTION 
     def create_stock_distribution_chart(self, parent, data, total_units=0):
         figure = Figure(figsize=(5.4, 3.2), dpi=90)
         self._active_figures.append(figure)
@@ -4378,9 +4282,7 @@ class DashboardApp(ctk.CTk):
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=14, pady=(4, 12))
 
-    # ========================================================
     # CHART 3: HORIZONTAL RANKED BAR - STOCK VALUE BY CATEGORY
-    # ========================================================
     def create_category_value_chart(self, parent, data, top_n=8):
         figure = Figure(figsize=(6.2, 3.2), dpi=90)
         self._active_figures.append(figure)
@@ -4449,9 +4351,7 @@ class DashboardApp(ctk.CTk):
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=14, pady=(4, 12))
 
-    # ========================================================
     # CHART 4: DONUT CHART - STOCK AVAILABILITY STATUS
-    # ========================================================
     def create_stock_status_chart(self, parent, data, total_products=0):
         figure = Figure(figsize=(5.4, 3.2), dpi=90)
         self._active_figures.append(figure)
@@ -4524,9 +4424,6 @@ class DashboardApp(ctk.CTk):
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=14, pady=(4, 12))
 
-    # ========================================================
-    # REPORTS HELPER TABLES (COMPLETE CATEGORY & RESTOCK LIST)
-    # ========================================================
     def _build_category_summary_table(
         self,
         parent,
@@ -4641,14 +4538,11 @@ class DashboardApp(ctk.CTk):
                 values=(sku, name, qty, status),
                 tags=(tag,)
             )
-
-    # ========================================================
-    # REDESIGNED SETTINGS (STORE PROFILE, BILLING & DB ADMIN)
-    # ========================================================
+   
+    # SETTINGS 
     def show_settings(self):
         self.clear_content()
 
-        # Header
         header = ctk.CTkFrame(self.content, fg_color="transparent")
         header.pack(fill="x", pady=(0, 18))
 
@@ -4669,15 +4563,11 @@ class DashboardApp(ctk.CTk):
             font=self.font_regular_13
         ).pack(anchor="w", pady=(2, 0))
 
-        # Two-Column Settings Workspace
         workspace = ctk.CTkFrame(self.content, fg_color="transparent")
         workspace.pack(fill="both", expand=True)
         workspace.grid_columnconfigure(0, weight=3)
         workspace.grid_columnconfigure(1, weight=2)
 
-        # ----------------------------------------------------
-        # LEFT COLUMN: STORE PROFILE & POS BILLING DEFAULTS
-        # ----------------------------------------------------
         left_card = ctk.CTkFrame(
             workspace,
             fg_color=WHITE,
@@ -4767,9 +4657,6 @@ class DashboardApp(ctk.CTk):
             command=self._on_restore_default_settings
         ).pack(side="right", expand=True, fill="x", padx=(8, 0))
 
-        # ----------------------------------------------------
-        # RIGHT COLUMN: DATABASE HEALTH, BACKUP & MAINTENANCE
-        # ----------------------------------------------------
         right_col = ctk.CTkFrame(workspace, fg_color="transparent")
         right_col.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
 
@@ -4835,7 +4722,6 @@ class DashboardApp(ctk.CTk):
             font=self.font_bold_12
         ).pack(anchor="w", padx=14, pady=(2, 10))
 
-        # Maintenance & Backup Buttons
         ctk.CTkLabel(
             db_card,
             text="Backup & Maintenance Tools",
@@ -5008,17 +4894,12 @@ class DashboardApp(ctk.CTk):
         except Exception as exc:
             messagebox.showerror("Error", str(exc), parent=self)
 
-    # ========================================================
-    # CREATE INVOICE SHORTCUT (OPENS BILLING WORKSPACE)
-    # ========================================================
+    # CREATE INVOICE 
     def create_invoice(self):
         self.show_page("Billing")
         self._shortcut_focus_scan_search()
 
-
-# ============================================================
 # RUN APPLICATION
-# ============================================================
 if __name__ == "__main__":
     app = DashboardApp()
     app.mainloop()
