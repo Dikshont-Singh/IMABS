@@ -1,8 +1,3 @@
-<<<<<<< HEAD
-=======
-# IMPORTS
-import sys
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 import csv
 import os
 import shutil
@@ -13,22 +8,11 @@ from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
-<<<<<<< HEAD
 BASE_DIR = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path(__file__).resolve().parent
 for p in (str(BASE_DIR.parent), str(BASE_DIR)):
     if p not in sys.path:
         sys.path.insert(0, p)
 
-=======
-# PATH 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-if str(PROJECT_ROOT) not in sys.path:
-    sys.path.insert(0, str(PROJECT_ROOT))
-if str(Path(__file__).resolve().parent) not in sys.path:
-    sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 import customtkinter as ctk
@@ -84,13 +68,7 @@ def _format_datetime_12h(value) -> str:
 
 
 def _ensure_writable_sqlite_path() -> Path:
-<<<<<<< HEAD
     candidates = [BASE_DIR / "Database" / "inventory.db"]
-=======
-    
-    script_dir = Path(__file__).resolve().parent
-    candidates = []
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
     if hasattr(_db_module, "DB_PATH"):
         p = Path(getattr(_db_module, "DB_PATH"))
         if p not in candidates:
@@ -102,7 +80,6 @@ def _ensure_writable_sqlite_path() -> Path:
 
     for cand in candidates:
         try:
-<<<<<<< HEAD
             cand.parent.mkdir(parents=True, exist_ok=True)
             with sqlite3.connect(str(cand)) as conn:
                 conn.execute("PRAGMA journal_mode=MEMORY;")
@@ -110,16 +87,6 @@ def _ensure_writable_sqlite_path() -> Path:
                 conn.execute("DROP TABLE IF EXISTS _db_check;")
             _db_module.DB_PATH = cand
             _db_module.DB_FOLDER = cand.parent
-=======
-            candidate.parent.mkdir(parents=True, exist_ok=True)
-            conn = sqlite3.connect(str(candidate))
-            conn.execute("CREATE TABLE IF NOT EXISTS _db_check (id INTEGER);")
-            conn.commit()
-            conn.close()
-          
-            _db_module.DB_PATH = candidate
-            _db_module.DB_FOLDER = candidate.parent
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
             def _safe_conn(_target=cand):
                 _target.parent.mkdir(parents=True, exist_ok=True)
@@ -144,48 +111,7 @@ def _ensure_writable_sqlite_path() -> Path:
 
 ACTIVE_DB_PATH = _ensure_writable_sqlite_path()
 
-<<<<<<< HEAD
 
-=======
-# APPEARANCE
-
-ctk.set_appearance_mode("light")
-ctk.set_default_color_theme("blue")
-
-# COLORS 
-
-NAVY = "#172554"
-NAVY_HOVER = "#243B78"
-BLUE = "#2563EB"
-BLUE_HOVER = "#1D4ED8"
-GREEN = "#0F766E"
-GREEN_HOVER = "#115E59"
-RED = "#DC2626"
-RED_HOVER = "#B91C1C"
-ORANGE = "#D97706"
-ORANGE_HOVER = "#B45309"
-GRAY = "#64748B"
-GRAY_HOVER = "#475569"
-PAGE_BG = "#F4F6FA"
-WHITE = "#FFFFFF"
-BORDER = "#E2E8F0"
-TEXT = "#0F172A"
-MUTED = "#64748B"
-
-
-CHART_PALETTE = [
-    "#2563EB",  # Primary Blue
-    "#0F766E",  # Teal Green
-    "#1E40AF",  # Deep Blue
-    "#0D9488",  # Bright Teal
-    "#3B82F6",  # Sky Blue
-    "#D97706",  # Amber Orange
-    "#64748B",  # Slate Muted 
-]
-
-# SIDEBAR BUTTON 
-
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 class SidebarButton(ctk.CTkButton):
     _f_norm = None
     _f_bold = None
@@ -202,21 +128,10 @@ class SidebarButton(ctk.CTkButton):
     def set_active(self, active: bool):
         self.configure(fg_color=NAVY_HOVER if active else "transparent", font=SidebarButton._f_bold if active else SidebarButton._f_norm)
 
-<<<<<<< HEAD
-=======
-# DASHBOARD APPLICATION
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
 class DashboardApp(ctk.CTk):
     def __init__(self):
         super().__init__()
-<<<<<<< HEAD
-=======
-
-       
-        # STATE & PERFORMANCE CACHE FOR OLDER SYSTEMS
-       
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         self.current_page = "Dashboard"
         self.inventory_tree = self.dashboard_tree = None
         self._search_after_id = self._pos_search_after_id = None
@@ -228,27 +143,15 @@ class DashboardApp(ctk.CTk):
         self.dashboard_status_filter = "All"
         self.inv_category_filter_var = self.inv_status_filter_var = self.inv_sort_var = None
 
-<<<<<<< HEAD
         initialize_database()
         self._init_billing_and_settings_tables()
         self.app_settings = self._load_app_settings()
 
-=======
-        # DATABASE & PERSISTENT SETTINGS
-       
-        initialize_database()
-        self._init_billing_and_settings_tables()
-        self.app_settings = self._load_app_settings()
-      
-        # WINDOW
-        
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         self.title(f"{self.app_settings['store_name']} - Inventory Management System")
         self.geometry("1400x830")
         self.minsize(1100, 650)
         self.configure(fg_color=PAGE_BG)
 
-<<<<<<< HEAD
         self.f_title = ctk.CTkFont(size=30, weight="bold")
         self.f_sec = ctk.CTkFont(size=18, weight="bold")
         self.f_b14 = ctk.CTkFont(size=14, weight="bold")
@@ -257,23 +160,9 @@ class DashboardApp(ctk.CTk):
         self.f_r12 = ctk.CTkFont(size=12)
         self.f_s11 = ctk.CTkFont(size=11)
 
-=======
-        self.font_page_title = ctk.CTkFont(size=30, weight="bold")
-        self.font_section_title = ctk.CTkFont(size=18, weight="bold")
-        self.font_card_title = ctk.CTkFont(size=12, weight="bold")
-        self.font_card_value = ctk.CTkFont(size=24, weight="bold")
-        self.font_bold_14 = ctk.CTkFont(size=14, weight="bold")
-        self.font_bold_12 = ctk.CTkFont(size=12, weight="bold")
-        self.font_regular_13 = ctk.CTkFont(size=13)
-        self.font_regular_12 = ctk.CTkFont(size=12)
-        self.font_small_11 = ctk.CTkFont(size=11)
-
-        # Configure ttk Treeview
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         self._setup_treeview_styles()
         self._bind_shortcuts()
 
-<<<<<<< HEAD
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.build_sidebar()
@@ -297,40 +186,6 @@ class DashboardApp(ctk.CTk):
         }
         for key, fn in bindings.items():
             self.bind_all(key, fn)
-=======
-        # Bind global POS keyboard shortcuts 
-        self._bind_pos_keyboard_shortcuts()
-
-        # GRID
-       
-        self.grid_columnconfigure(1, weight=1)
-        self.grid_rowconfigure(0, weight=1)
-
-        # BUILD GUI
-        
-        self.build_sidebar()
-        self.build_main_area()
-
-        # START DASHBOARD
-       
-        self.show_page("Dashboard")
-
-    # KEYBOARD SHORTCUTS FOR POS BILLING TERMINAL
-    
-    def _bind_pos_keyboard_shortcuts(self):
-        self.bind_all("<F1>", self._shortcut_new_transaction)
-        self.bind_all("<F2>", self._shortcut_focus_scan_search)
-        self.bind_all("<F3>", self._shortcut_focus_invoice_history)
-        self.bind_all("<F4>", self._shortcut_focus_discount)
-        self.bind_all("<F8>", self._shortcut_reprint_last_receipt)
-        self.bind_all("<F9>", self._shortcut_show_help)
-        self.bind_all("<F10>", self._shortcut_checkout)
-        self.bind_all("<Control-Return>", self._shortcut_checkout)
-        self.bind_all("<Escape>", self._shortcut_escape)
-        self.bind_all("<Control-n>", self._shortcut_add_product)
-        self.bind_all("<Control-N>", self._shortcut_add_product)
-        self.bind_all("<Delete>", self._shortcut_delete_selected_product)
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
     def _shortcut_focus_scan_search(self):
         if self.current_page != "Billing":
@@ -359,12 +214,6 @@ class DashboardApp(ctk.CTk):
             if hasattr(self, "pos_search_entry") and self.pos_search_entry.winfo_exists():
                 self.pos_search_entry.focus_set()
 
-<<<<<<< HEAD
-=======
-   
-    # TREEVIEW STYLE INITIALIZATION 
-    
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
     def _setup_treeview_styles(self):
         style = ttk.Style()
         style.theme_use("clam")
@@ -373,13 +222,7 @@ class DashboardApp(ctk.CTk):
         style.map("Inventory.Treeview", background=[("selected", "#DBEAFE")], foreground=[("selected", TEXT)])
         style.map("Inventory.Treeview.Heading", background=[("active", "#CBD5E1")])
 
-<<<<<<< HEAD
     def _get_billing_db_path(self) -> Path:
-=======
-    # SQLITE STORAGE FOR BILLING & APP SETTINGS
-   
-    def _get_billing_db_path(self):
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         if hasattr(_db_module, "DB_PATH"):
             p = Path(getattr(_db_module, "DB_PATH"))
             try:
@@ -437,12 +280,12 @@ class DashboardApp(ctk.CTk):
         return {
             "store_name": "IMABS",
             "store_tagline": "Inventory & Billing Management System",
-            "store_address": "Varanasi, India",
-            "store_contact": "+91 xxxxxxxx  |  GSTIN: xxxxxxxxxxxxxxx",
+            "store_address": "New Delhi, India",
+            "store_contact": "+91 9876543210  |  GSTIN: 07AAAAA0000A1Z5",
             "default_tax_pct": "18",
             "default_discount_pct": "0",
             "low_stock_threshold": "10",
-            "currency_symbol": "Rs",
+            "currency_symbol": "₹",
             "invoice_prefix": "INV",
         }
 
@@ -460,18 +303,7 @@ class DashboardApp(ctk.CTk):
     def _save_app_settings(self, new_settings: dict):
         with self._db_conn() as conn:
             for k, v in new_settings.items():
-<<<<<<< HEAD
                 conn.execute("INSERT INTO app_settings (key, value) VALUES (?, ?) ON CONFLICT(key) DO UPDATE SET value = excluded.value", (str(k), str(v)))
-=======
-                cur.execute(
-                    """
-                    INSERT INTO app_settings (key, value)
-                    VALUES (?, ?)
-                    ON CONFLICT(key) DO UPDATE SET value = excluded.value
-                    """,
-                    (str(k), str(v)),
-                )
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
             try:
                 thresh = max(1, int(float(new_settings.get("low_stock_threshold", 10))))
                 conn.execute("UPDATE products SET status = CASE WHEN quantity <= 0 THEN 'Out of Stock' WHEN quantity <= ? THEN 'Low Stock' ELSE 'In Stock' END", (thresh,))
@@ -546,7 +378,6 @@ class DashboardApp(ctk.CTk):
         except Exception:
             return []
 
-<<<<<<< HEAD
     def _build_receipt_data(self, row):
         items = [{"sku": r[0], "name": r[1], "qty": r[2], "price": float(r[3]), "total": float(r[4])} for r in self._fetch_invoice_items(int(row[0]))]
         return {
@@ -567,10 +398,6 @@ class DashboardApp(ctk.CTk):
         defaults.update(kwargs)
         return ctk.CTkFrame(parent, **defaults)
 
-=======
-    # SIDEBAR
-   
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
     def build_sidebar(self):
         sidebar = ctk.CTkFrame(self, width=180, corner_radius=0, fg_color=NAVY)
         sidebar.grid(row=0, column=0, sticky="nswe")
@@ -583,11 +410,6 @@ class DashboardApp(ctk.CTk):
             btn.pack(fill="x", padx=10, pady=4)
             self.nav_buttons[item] = btn
 
-<<<<<<< HEAD
-=======
-    # MAIN AREA
-   
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
     def build_main_area(self):
         self.main = ctk.CTkFrame(self, fg_color=PAGE_BG, corner_radius=0)
         self.main.grid(row=0, column=1, sticky="nswe")
@@ -609,12 +431,6 @@ class DashboardApp(ctk.CTk):
         self.content.grid(row=1, column=0, sticky="nswe", padx=35, pady=25)
         self.content.grid_columnconfigure(0, weight=1)
 
-<<<<<<< HEAD
-=======
-
-    # MEMORY CLEANUP
-    
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
     def clear_content(self):
         self.inventory_tree = self.dashboard_tree = None
         for fig in self._active_figures:
@@ -626,14 +442,6 @@ class DashboardApp(ctk.CTk):
         for w in self.content.winfo_children():
             w.destroy()
 
-<<<<<<< HEAD
-=======
-        for widget in self.content.winfo_children():
-            widget.destroy()
-
-    # PAGE NAVIGATION
-
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
     def show_page(self, page):
         self.current_page = page
         for name, btn in self.nav_buttons.items():
@@ -641,27 +449,8 @@ class DashboardApp(ctk.CTk):
         self.clear_content()
         {"Dashboard": self.show_dashboard, "Inventory": self.show_inventory, "Billing": self.show_billing, "Reports": self.show_reports, "Settings": self.show_settings}[page]()
 
-<<<<<<< HEAD
     def show_dashboard(self):
         self.clear_content()
-=======
-        if page == "Dashboard":
-            self.show_dashboard()
-        elif page == "Inventory":
-            self.show_inventory()
-        elif page == "Billing":
-            self.show_billing()
-        elif page == "Reports":
-            self.show_reports()
-        elif page == "Settings":
-            self.show_settings()
-   
-    def show_dashboard(self):
-        self.clear_content()
-       
-        # 1. HEADER WITH QUICK-ACTION TOOLBAR
-        
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         header = ctk.CTkFrame(self.content, fg_color="transparent")
         header.pack(fill="x", pady=(0, 18))
         t_col = ctk.CTkFrame(header, fg_color="transparent")
@@ -679,70 +468,6 @@ class DashboardApp(ctk.CTk):
         ):
             ctk.CTkButton(qbar, text=txt, width=w, height=38, fg_color=fg, hover_color=hv, font=self.f_b12, command=cmd).pack(side="left", padx=(0, 8))
 
-<<<<<<< HEAD
-=======
-        ctk.CTkLabel(
-            title_col,
-            text="Executive Overview",
-            text_color=TEXT,
-            font=self.font_page_title
-        ).pack(anchor="w")
-
-        ctk.CTkLabel(
-            title_col,
-            text=f"{self.app_settings.get('store_name', 'IMABS')} — Real-time inventory, sales revenue & restock command center",
-            text_color=MUTED,
-            font=self.font_regular_13
-        ).pack(anchor="w", pady=(2, 0))
-
-        quick_bar = ctk.CTkFrame(header, fg_color="transparent")
-        quick_bar.pack(side="right", pady=4)
-
-        ctk.CTkButton(
-            quick_bar,
-            text="+ Add Product",
-            width=135,
-            height=38,
-            fg_color=BLUE,
-            hover_color=BLUE_HOVER,
-            font=self.font_bold_12,
-            command=self.open_add_product
-        ).pack(side="left", padx=(0, 8))
-
-        ctk.CTkButton(
-            quick_bar,
-            text="🧾 New POS Invoice",
-            width=145,
-            height=38,
-            fg_color=GREEN,
-            hover_color=GREEN_HOVER,
-            font=self.font_bold_12,
-            command=self.create_invoice
-        ).pack(side="left", padx=(0, 8))
-
-        ctk.CTkButton(
-            quick_bar,
-            text="📊 Analytics",
-            width=115,
-            height=38,
-            fg_color=NAVY,
-            hover_color=NAVY_HOVER,
-            font=self.font_bold_12,
-            command=lambda: self.show_page("Reports")
-        ).pack(side="left", padx=(0, 8))
-
-        ctk.CTkButton(
-            quick_bar,
-            text="↻ Refresh",
-            width=95,
-            height=38,
-            fg_color=GRAY,
-            hover_color=GRAY_HOVER,
-            font=self.font_bold_12,
-            command=self.show_dashboard
-        ).pack(side="left")
-        
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         stats = get_dashboard_stats()
         all_products = get_products()
         total_units = sum(int(p[4]) for p in all_products)
@@ -768,22 +493,7 @@ class DashboardApp(ctk.CTk):
         ws.grid_columnconfigure(0, weight=7)
         ws.grid_columnconfigure(1, weight=3)
 
-<<<<<<< HEAD
         left_panel = self._card(ws)
-=======
-        workspace = ctk.CTkFrame(self.content, fg_color="transparent")
-        workspace.pack(fill="both", expand=True)
-        workspace.grid_columnconfigure(0, weight=7)
-        workspace.grid_columnconfigure(1, weight=3)
-
-        left_panel = ctk.CTkFrame(
-            workspace,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         left_panel.grid(row=0, column=0, sticky="nsew", padx=(0, 8))
         ltop = ctk.CTkFrame(left_panel, fg_color="transparent")
         ltop.pack(fill="x", padx=22, pady=(18, 10))
@@ -792,40 +502,10 @@ class DashboardApp(ctk.CTk):
         ctk.CTkLabel(tstack, text="Live Inventory Explorer", text_color=TEXT, font=self.f_sec).pack(anchor="w")
         ctk.CTkLabel(tstack, text="Double-click any product row to edit details or adjust stock", text_color=MUTED, font=self.f_s11).pack(anchor="w", pady=(2, 0))
 
-<<<<<<< HEAD
         fbar = ctk.CTkFrame(ltop, fg_color="transparent")
         fbar.pack(side="right")
         for opt in ("All", "In Stock", "Low Stock", "Out of Stock"):
             act = self.dashboard_status_filter == opt
-=======
-        left_top = ctk.CTkFrame(left_panel, fg_color="transparent")
-        left_top.pack(fill="x", padx=22, pady=(18, 10))
-
-        title_stack = ctk.CTkFrame(left_top, fg_color="transparent")
-        title_stack.pack(side="left")
-
-        ctk.CTkLabel(
-            title_stack,
-            text="Live Inventory Explorer",
-            text_color=TEXT,
-            font=self.font_section_title
-        ).pack(anchor="w")
-
-        ctk.CTkLabel(
-            title_stack,
-            text="Double-click any product row to edit details or adjust stock",
-            text_color=MUTED,
-            font=self.font_small_11
-        ).pack(anchor="w", pady=(2, 0))
-
-        filter_bar = ctk.CTkFrame(left_top, fg_color="transparent")
-        filter_bar.pack(side="right")
-
-        for status_opt in ("All", "In Stock", "Low Stock", "Out of Stock"):
-            is_active = (self.dashboard_status_filter == status_opt)
-            pill_color = NAVY if is_active else PAGE_BG
-            pill_text_color = WHITE if is_active else TEXT
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
             ctk.CTkButton(
                 fbar, text=opt, width=84, height=30, corner_radius=6,
                 fg_color=NAVY if act else PAGE_BG, hover_color=NAVY_HOVER if act else BORDER,
@@ -836,23 +516,10 @@ class DashboardApp(ctk.CTk):
         self.dashboard_tree = self.create_inventory_table(left_panel, self._get_filtered_dashboard_products(self.search_var.get().strip()), height=13)
         self.dashboard_tree.bind("<Double-1>", self._on_dashboard_tree_double_click)
 
-<<<<<<< HEAD
         right_col = ctk.CTkFrame(ws, fg_color="transparent")
         right_col.grid(row=0, column=1, sticky="nsew", padx=(8, 0))
 
         restock_card = self._card(right_col)
-=======
-        right_col = ctk.CTkFrame(workspace, fg_color="transparent")
-        right_col.grid(row=0, column=1, sticky="nsew", padx=(8, 0))
-
-        restock_card = ctk.CTkFrame(
-            right_col,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         restock_card.pack(fill="both", expand=True, pady=(0, 12))
         rhead = ctk.CTkFrame(restock_card, fg_color="transparent")
         rhead.pack(fill="x", padx=18, pady=(16, 6))
@@ -876,48 +543,7 @@ class DashboardApp(ctk.CTk):
                 ctk.CTkLabel(inf, text=f"{sku}  •  Stock: {qty}", text_color=RED if int(qty) <= 0 else ORANGE, font=self.f_s11, anchor="w").pack(anchor="w")
                 ctk.CTkButton(rf, text="+10 Stock", width=74, height=26, corner_radius=5, fg_color=GREEN, hover_color=GREEN_HOVER, font=ctk.CTkFont(size=11, weight="bold"), command=lambda p=prod: self._quick_restock_product(p, 10)).pack(side="right", padx=8, pady=5)
 
-<<<<<<< HEAD
         sales_card = self._card(right_col)
-=======
-                info_f = ctk.CTkFrame(row_f, fg_color="transparent")
-                info_f.pack(side="left", fill="x", expand=True, padx=8, pady=5)
-
-                ctk.CTkLabel(
-                    info_f,
-                    text=name if len(str(name)) <= 22 else str(name)[:20] + "…",
-                    text_color=TEXT,
-                    font=self.font_bold_12,
-                    anchor="w"
-                ).pack(anchor="w")
-
-                ctk.CTkLabel(
-                    info_f,
-                    text=f"{sku}  •  Stock: {qty}",
-                    text_color=RED if is_out else ORANGE,
-                    font=self.font_small_11,
-                    anchor="w"
-                ).pack(anchor="w")
-
-                ctk.CTkButton(
-                    row_f,
-                    text="+10 Stock",
-                    width=74,
-                    height=26,
-                    corner_radius=5,
-                    fg_color=GREEN,
-                    hover_color=GREEN_HOVER,
-                    font=ctk.CTkFont(size=11, weight="bold"),
-                    command=lambda p=prod: self._quick_restock_product(p, 10)
-                ).pack(side="right", padx=8, pady=5)
-
-        sales_card = ctk.CTkFrame(
-            right_col,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         sales_card.pack(fill="both", expand=True)
         shead = ctk.CTkFrame(sales_card, fg_color="transparent")
         shead.pack(fill="x", padx=18, pady=(14, 6))
@@ -969,42 +595,8 @@ class DashboardApp(ctk.CTk):
         else:
             messagebox.showerror("Restock Error", msg, parent=self)
 
-<<<<<<< HEAD
     def show_inventory(self):
         self.clear_content()
-=======
-    # STAT CARD
-   
-    def create_stat_card(self, parent, column, title, value):
-        card = ctk.CTkFrame(
-            parent,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
-        card.grid(row=0, column=column, sticky="we", padx=6)
-
-        label = ctk.CTkLabel(
-            card,
-            text=title,
-            text_color=BLUE,
-            font=self.font_card_title
-        )
-        label.pack(anchor="w", padx=20, pady=(20, 5))
-
-        value_label = ctk.CTkLabel(
-            card,
-            text=value,
-            text_color=TEXT,
-            font=self.font_card_value
-        )
-        value_label.pack(anchor="w", padx=20, pady=(0, 20))
-
-    def show_inventory(self):
-        self.clear_content()
-
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         header = ctk.CTkFrame(self.content, fg_color="transparent")
         header.pack(fill="x", pady=(0, 14))
         t_col = ctk.CTkFrame(header, fg_color="transparent")
@@ -1022,98 +614,10 @@ class DashboardApp(ctk.CTk):
         ):
             ctk.CTkButton(bbar, text=txt, width=w, height=38, fg_color=fg, hover_color=hv, font=self.f_b12, command=cmd).pack(side="right", padx=pad)
 
-<<<<<<< HEAD
         fcard = self._card(self.content)
         fcard.pack(fill="x", pady=(0, 14))
         frow = ctk.CTkFrame(fcard, fg_color="transparent")
         frow.pack(fill="x", padx=20, pady=12)
-=======
-        ctk.CTkLabel(
-            title_col,
-            text="Inventory Management",
-            text_color=TEXT,
-            font=self.font_page_title
-        ).pack(anchor="w")
-
-        ctk.CTkLabel(
-            title_col,
-            text="Filter, sort, adjust stock levels, or right-click any product row for quick actions",
-            text_color=MUTED,
-            font=self.font_regular_13
-        ).pack(anchor="w", pady=(2, 0))
-
-        button_bar = ctk.CTkFrame(header, fg_color="transparent")
-        button_bar.pack(side="right", pady=4)
-
-        ctk.CTkButton(
-            button_bar,
-            text="+ Add Product",
-            width=135,
-            height=38,
-            fg_color=BLUE,
-            hover_color=BLUE_HOVER,
-            font=self.font_bold_12,
-            command=self.open_add_product
-        ).pack(side="right")
-
-        ctk.CTkButton(
-            button_bar,
-            text="⚡ Adjust Stock",
-            width=125,
-            height=38,
-            fg_color=NAVY,
-            hover_color=NAVY_HOVER,
-            font=self.font_bold_12,
-            command=self.open_quick_stock_adjust
-        ).pack(side="right", padx=(0, 8))
-
-        ctk.CTkButton(
-            button_bar,
-            text="📤 Export CSV",
-            width=120,
-            height=38,
-            fg_color=GRAY,
-            hover_color=GRAY_HOVER,
-            font=self.font_bold_12,
-            command=self.export_csv
-        ).pack(side="right", padx=(0, 8))
-
-        ctk.CTkButton(
-            button_bar,
-            text="📥 Import CSV",
-            width=120,
-            height=38,
-            fg_color=GREEN,
-            hover_color=GREEN_HOVER,
-            font=self.font_bold_12,
-            command=self.import_csv
-        ).pack(side="right", padx=(0, 8))
-
-        # FILTER, SORT & BULK CONTROL BAR CARD
-        
-        filter_card = ctk.CTkFrame(
-            self.content,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
-        filter_card.pack(fill="x", pady=(0, 14))
-
-        f_row = ctk.CTkFrame(filter_card, fg_color="transparent")
-        f_row.pack(fill="x", padx=20, pady=12)
-
-        all_products = get_products()
-        categories = sorted({str(p[3]) for p in all_products if p[3]})
-        cat_options = ["All Categories"] + categories
-
-        ctk.CTkLabel(
-            f_row,
-            text="Category:",
-            text_color=TEXT,
-            font=self.font_bold_12
-        ).pack(side="left", padx=(0, 6))
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
         cats = ["All Categories"] + sorted({str(p[3]) for p in get_products() if p[3]})
         self.inv_category_filter_var = ctk.StringVar(value="All Categories")
@@ -1128,43 +632,11 @@ class DashboardApp(ctk.CTk):
             ctk.CTkLabel(frow, text=lbl, text_color=TEXT, font=self.f_b12).pack(side="left", padx=(0, 6))
             ctk.CTkOptionMenu(frow, variable=var, values=vals, width=w, height=34, fg_color=col, button_color=col, button_hover_color=hov, command=lambda _x: self.refresh_inventory()).pack(side="left", padx=(0, 12))
 
-<<<<<<< HEAD
         ctk.CTkButton(frow, text="Reset Filters", width=100, height=34, fg_color=PAGE_BG, hover_color=BORDER, text_color=TEXT, border_width=1, border_color=BORDER, font=self.f_b12, command=self._reset_inventory_filters).pack(side="left")
         ctk.CTkButton(frow, text="🗑 Delete", width=85, height=34, fg_color=RED, hover_color=RED_HOVER, font=self.f_b12, command=self.delete_selected_product).pack(side="right")
         ctk.CTkButton(frow, text="✏ Edit Selected", width=115, height=34, fg_color=BLUE, hover_color=BLUE_HOVER, font=self.f_b12, command=self.edit_selected_product).pack(side="right", padx=(0, 8))
 
         self.inventory_panel = self._card(self.content)
-=======
-        ctk.CTkButton(
-            f_row,
-            text="🗑 Delete",
-            width=85,
-            height=34,
-            fg_color=RED,
-            hover_color=RED_HOVER,
-            font=self.font_bold_12,
-            command=self.delete_selected_product
-        ).pack(side="right")
-
-        ctk.CTkButton(
-            f_row,
-            text="✏ Edit Selected",
-            width=115,
-            height=34,
-            fg_color=BLUE,
-            hover_color=BLUE_HOVER,
-            font=self.font_bold_12,
-            command=self.edit_selected_product
-        ).pack(side="right", padx=(0, 8))
-
-        self.inventory_panel = ctk.CTkFrame(
-            self.content,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         self.inventory_panel.pack(fill="both", expand=True)
         self.inv_summary_label = ctk.CTkLabel(self.content, text="", text_color=MUTED, font=self.f_b12)
         self.inv_summary_label.pack(anchor="w", pady=(8, 0))
@@ -1200,36 +672,7 @@ class DashboardApp(ctk.CTk):
         prods.sort(key=key_fn, reverse=rev)
         return prods
 
-<<<<<<< HEAD
     def create_inventory_table(self, parent, products, height=13):
-=======
-        if self.inv_status_filter_var:
-            st_filter = self.inv_status_filter_var.get()
-            if st_filter and st_filter != "All Statuses":
-                products = [p for p in products if str(p[6]).lower() == st_filter.lower()]
-
-        sort_choice = self.inv_sort_var.get() if self.inv_sort_var else "Newest First (ID ↓)"
-        if sort_choice == "Product Name (A → Z)":
-            products.sort(key=lambda x: str(x[2]).lower())
-        elif sort_choice == "Quantity: Low to High":
-            products.sort(key=lambda x: int(x[4]))
-        elif sort_choice == "Quantity: High to Low":
-            products.sort(key=lambda x: int(x[4]), reverse=True)
-        elif sort_choice == "Unit Price: Low to High":
-            products.sort(key=lambda x: float(x[5]))
-        elif sort_choice == "Unit Price: High to Low":
-            products.sort(key=lambda x: float(x[5]), reverse=True)
-        elif sort_choice == "Stock Value: High to Low":
-            products.sort(key=lambda x: int(x[4]) * float(x[5]), reverse=True)
-        else:
-            products.sort(key=lambda x: int(x[0]), reverse=True)
-
-        return products
-
-    # INVENTORY TABLE 
-  
-    def create_inventory_table(self, parent, products, height=13, include_total_value=True):
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         frame = ctk.CTkFrame(parent, fg_color="transparent")
         frame.pack(fill="both", expand=True, padx=20, pady=(14, 18))
         frame.grid_columnconfigure(0, weight=1)
@@ -1277,36 +720,6 @@ class DashboardApp(ctk.CTk):
             qty, price = int(p[4]), float(p[5])
             tree.insert("", "end", values=(p[0], p[1], p[2], p[3], qty, f"{price:.2f}", f"{qty * price:,.2f}", p[6]), tags=tag)
 
-<<<<<<< HEAD
-=======
-            qty_val = int(product[4])
-            price_val = float(product[5])
-            if include_total_value or len(tree["columns"]) == 8:
-                formatted_row = (
-                    product[0],
-                    product[1],
-                    product[2],
-                    product[3],
-                    qty_val,
-                    f"{price_val:.2f}",
-                    f"{qty_val * price_val:,.2f}",
-                    product[6]
-                )
-            else:
-                formatted_row = (
-                    product[0],
-                    product[1],
-                    product[2],
-                    product[3],
-                    qty_val,
-                    f"{price_val:.2f}",
-                    product[6]
-                )
-            tree.insert("", "end", values=formatted_row, tags=tags)
-
-    # REFRESH INVENTORY
-    
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
     def refresh_inventory(self):
         if not (hasattr(self, "inventory_panel") and self.inventory_panel.winfo_exists()):
             return
@@ -1324,13 +737,7 @@ class DashboardApp(ctk.CTk):
         self.inventory_tree.bind("<Double-1>", self.edit_selected_product)
         self.inventory_tree.bind("<Button-3>", self.show_context_menu)
 
-<<<<<<< HEAD
     def _on_search_keyrelease(self, _event=None):
-=======
-    # DEBOUNCED SEARCH 
-    
-    def _on_search_keyrelease(self, event=None):
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         if self._search_after_id is not None:
             try:
                 self.after_cancel(self._search_after_id)
@@ -1470,267 +877,7 @@ class DashboardApp(ctk.CTk):
             else:
                 messagebox.showerror("Error", msg, parent=win)
 
-<<<<<<< HEAD
         ctk.CTkButton(win, text="Save Changes" if is_edit else "Add Product", height=42, fg_color=BLUE, hover_color=BLUE_HOVER, command=save).pack(fill="x", padx=40, pady=28)
-=======
-        ctk.CTkButton(
-            win,
-            text="Save Exact Stock",
-            height=40,
-            fg_color=BLUE,
-            hover_color=BLUE_HOVER,
-            command=save_exact
-        ).pack(fill="x", padx=40)
-   
-    # ADD PRODUCT WINDOW
-   
-    def open_add_product(self):
-        window = ctk.CTkToplevel(self)
-        window.title("Add Product")
-        window.geometry("460x570")
-        window.resizable(False, False)
-        window.transient(self)
-        window.grab_set()
-
-        title = ctk.CTkLabel(
-            window,
-            text="Add New Product",
-            font=ctk.CTkFont(size=24, weight="bold"),
-            text_color=TEXT
-        )
-        title.pack(pady=(22, 16))
-
-        fields = {}
-        sku_lbl_row = ctk.CTkFrame(window, fg_color="transparent")
-        sku_lbl_row.pack(fill="x", padx=40, pady=(6, 3))
-        ctk.CTkLabel(sku_lbl_row, text="SKU", anchor="w", text_color=TEXT).pack(side="left")
-
-        sku_entry_row = ctk.CTkFrame(window, fg_color="transparent")
-        sku_entry_row.pack(fill="x", padx=40)
-        sku_entry = ctk.CTkEntry(sku_entry_row, height=38)
-        sku_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
-        sku_entry.insert(0, self._generate_next_sku())
-        fields["SKU"] = sku_entry
-
-        ctk.CTkButton(
-            sku_entry_row,
-            text="Auto SKU",
-            width=84,
-            height=38,
-            fg_color=NAVY,
-            hover_color=NAVY_HOVER,
-            font=self.font_bold_12,
-            command=lambda: (
-                sku_entry.delete(0, "end"),
-                sku_entry.insert(0, self._generate_next_sku())
-            )
-        ).pack(side="right")
-
-        for field in ["Product Name", "Category", "Quantity", "Price"]:
-            label = ctk.CTkLabel(
-                window,
-                text=field if field != "Price" else "Unit Price (₹ for 1 item)",
-                anchor="w",
-                text_color=TEXT
-            )
-            label.pack(fill="x", padx=40, pady=(8, 3))
-
-            entry = ctk.CTkEntry(window, height=38)
-            entry.pack(fill="x", padx=40)
-            fields[field] = entry
-
-        def save_product():
-            sku = fields["SKU"].get().strip()
-            name = fields["Product Name"].get().strip()
-            category = fields["Category"].get().strip()
-            quantity_text = fields["Quantity"].get().strip()
-            price_text = fields["Price"].get().strip().replace("₹", "").replace(",", "")
-
-            if not all([sku, name, category, quantity_text, price_text]):
-                messagebox.showwarning(
-                    "Missing Information",
-                    "Please fill all fields.",
-                    parent=window
-                )
-                return
-
-            try:
-                quantity = int(quantity_text)
-                price = float(price_text)
-            except ValueError:
-                messagebox.showerror(
-                    "Invalid Data",
-                    "Quantity must be a whole number and Price must be a number.",
-                    parent=window
-                )
-                return
-
-            if quantity < 0 or price < 0:
-                messagebox.showerror(
-                    "Invalid Data",
-                    "Quantity and Price cannot be negative.",
-                    parent=window
-                )
-                return
-
-            success, message = add_product(
-                sku,
-                name,
-                category,
-                quantity,
-                price
-            )
-            if success:
-                messagebox.showinfo("Success", message, parent=window)
-                window.destroy()
-                if self.current_page == "Inventory":
-                    self.show_inventory()
-                else:
-                    self.refresh_dashboard_if_needed()
-            else:
-                messagebox.showerror("Error", message, parent=window)
-
-        save_button = ctk.CTkButton(
-            window,
-            text="Add Product",
-            height=42,
-            fg_color=BLUE,
-            hover_color=BLUE_HOVER,
-            command=save_product
-        )
-        save_button.pack(fill="x", padx=40, pady=28)
-
-    # EDIT PRODUCT 
-    
-    def edit_selected_product(self, event=None):
-        if self.inventory_tree is None or not self.inventory_tree.winfo_exists():
-            return
-
-        if event is not None:
-            clicked_row = self.inventory_tree.identify_row(event.y)
-            if not clicked_row:
-                return
-
-        selected = self.inventory_tree.selection()
-        if not selected:
-            messagebox.showinfo(
-                "Select a Product",
-                "Please select a product row first to edit.",
-                parent=self
-            )
-            return
-
-        values = self.inventory_tree.item(selected[0], "values")
-        if values:
-            self.open_edit_product(values)
-
-    # EDIT WINDOW
-   
-    def open_edit_product(self, values):
-        window = ctk.CTkToplevel(self)
-        window.title("Edit Product")
-        window.geometry("450x550")
-        window.resizable(False, False)
-        window.transient(self)
-        window.grab_set()
-
-        title = ctk.CTkLabel(
-            window,
-            text="Edit Product",
-            font=ctk.CTkFont(size=24, weight="bold"),
-            text_color=TEXT
-        )
-        title.pack(pady=(25, 20))
-
-        fields = {}
-        field_names = [
-            "SKU",
-            "Product Name",
-            "Category",
-            "Quantity",
-            "Price"
-        ]
-        current_values = [
-            values[1],
-            values[2],
-            values[3],
-            values[4],
-            str(values[5]).replace("₹", "").replace(",", "")
-        ]
-        for field, current in zip(field_names, current_values):
-            label = ctk.CTkLabel(
-                window,
-                text=field,
-                anchor="w",
-                text_color=TEXT
-            )
-            label.pack(fill="x", padx=40, pady=(8, 3))
-
-            entry = ctk.CTkEntry(window, height=38)
-            entry.insert(0, str(current))
-            entry.pack(fill="x", padx=40)
-            fields[field] = entry
-
-        def save_changes():
-            sku = fields["SKU"].get().strip()
-            name = fields["Product Name"].get().strip()
-            category = fields["Category"].get().strip()
-            quantity_text = fields["Quantity"].get().strip()
-            price_text = fields["Price"].get().strip().replace("₹", "").replace(",", "")
-
-            if not all([sku, name, category, quantity_text, price_text]):
-                messagebox.showwarning(
-                    "Missing Information",
-                    "Please fill all fields.",
-                    parent=window
-                )
-                return
-
-            try:
-                quantity = int(quantity_text)
-                price = float(price_text)
-            except ValueError:
-                messagebox.showerror(
-                    "Invalid Data",
-                    "Quantity must be an integer and Price must be a number.",
-                    parent=window
-                )
-                return
-
-            if quantity < 0 or price < 0:
-                messagebox.showerror(
-                    "Invalid Data",
-                    "Quantity and Price cannot be negative.",
-                    parent=window
-                )
-                return
-
-            success, message = update_product(
-                int(values[0]),
-                sku,
-                name,
-                category,
-                quantity,
-                price
-            )
-            if success:
-                messagebox.showinfo("Success", message, parent=window)
-                window.destroy()
-                self.refresh_inventory()
-                self.refresh_dashboard_if_needed()
-            else:
-                messagebox.showerror("Error", message, parent=window)
-
-        save_button = ctk.CTkButton(
-            window,
-            text="Save Changes",
-            height=42,
-            fg_color=BLUE,
-            hover_color=BLUE_HOVER,
-            command=save_changes
-        )
-        save_button.pack(fill="x", padx=40, pady=30)
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
     def show_context_menu(self, event):
         if not (self.inventory_tree and self.inventory_tree.winfo_exists()):
@@ -1762,11 +909,6 @@ class DashboardApp(ctk.CTk):
         self._add_product_dict_to_cart({"id": pid, "sku": sku, "name": name, "category": cat, "stock": qty, "price": price, "status": status})
         messagebox.showinfo("Added to POS Cart", f"1 unit of '{name}' ({sku}) was added to the Billing Cart.", parent=self)
 
-<<<<<<< HEAD
-=======
-    # DELETE PRODUCT
-   
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
     def delete_selected_product(self):
         if not (self.inventory_tree and self.inventory_tree.winfo_exists()):
             return
@@ -1785,10 +927,6 @@ class DashboardApp(ctk.CTk):
         else:
             messagebox.showerror("Error", msg)
 
-<<<<<<< HEAD
-=======
-    # IMPORT CSV
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
     def import_csv(self):
         path = filedialog.askopenfilename(title="Select Inventory CSV", filetypes=[("CSV Files", "*.csv"), ("All Files", "*.*")])
         if not path:
@@ -1804,10 +942,6 @@ class DashboardApp(ctk.CTk):
         except Exception as err:
             messagebox.showerror("Import Error", f"Could not import CSV file.\n\n{err}")
 
-<<<<<<< HEAD
-=======
-    # EXPORT CSV
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
     def export_csv(self):
         path = filedialog.asksaveasfilename(title="Export Inventory", defaultextension=".csv", filetypes=[("CSV Files", "*.csv")], initialfile="inventory_export.csv")
         if not path:
@@ -1824,22 +958,10 @@ class DashboardApp(ctk.CTk):
     def show_billing(self):
         self._billing_products = [{"id": int(p[0]), "sku": str(p[1]), "name": str(p[2]), "category": str(p[3]), "stock": int(p[4]), "price": float(p[5]), "status": str(p[6])} for p in get_products()]
 
-<<<<<<< HEAD
         ph = self._card(self.content)
         ph.pack(fill="x", pady=(0, 14))
         tbar = ctk.CTkFrame(ph, fg_color="transparent")
         tbar.pack(fill="x", padx=22, pady=(16, 10))
-=======
-       
-        pos_header_card = ctk.CTkFrame(
-            self.content,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
-        pos_header_card.pack(fill="x", pady=(0, 14))
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
         bcol = ctk.CTkFrame(tbar, fg_color="transparent")
         bcol.pack(side="left")
@@ -1880,17 +1002,10 @@ class DashboardApp(ctk.CTk):
         self.payment_method_var = ctk.StringVar(value="Cash")
         ctk.CTkOptionMenu(cstrip, variable=self.payment_method_var, values=["Cash", "UPI", "Card", "Bank Transfer"], height=32, fg_color=NAVY, button_color=NAVY, button_hover_color=NAVY_HOVER).grid(row=0, column=5, padx=(0, 14), pady=8, sticky="we")
 
-<<<<<<< HEAD
         ws = ctk.CTkFrame(self.content, fg_color="transparent")
         ws.pack(fill="both", expand=True)
         ws.grid_columnconfigure(0, weight=7)
         ws.grid_columnconfigure(1, weight=3)
-=======
-        workspace = ctk.CTkFrame(self.content, fg_color="transparent")
-        workspace.pack(fill="both", expand=True)
-        workspace.grid_columnconfigure(0, weight=7)
-        workspace.grid_columnconfigure(1, weight=3)
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
         lcol = ctk.CTkFrame(ws, fg_color="transparent")
         lcol.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
@@ -1942,16 +1057,11 @@ class DashboardApp(ctk.CTk):
         self.cart_rows_container.pack(fill="both", expand=True, padx=16, pady=(0, 14))
         self.cart_rows_container.grid_columnconfigure(0, weight=1)
 
-<<<<<<< HEAD
         rcol = ctk.CTkFrame(ws, fg_color="transparent")
         rcol.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
         sum_card = ctk.CTkFrame(rcol, fg_color=NAVY, corner_radius=12, border_width=1, border_color=NAVY_HOVER)
         sum_card.pack(fill="both", expand=True)
         ctk.CTkLabel(sum_card, text="🧾 Cart Summary", font=ctk.CTkFont(size=19, weight="bold"), text_color=WHITE).pack(anchor="w", padx=22, pady=(20, 12))
-=======
-        right_col = ctk.CTkFrame(workspace, fg_color="transparent")
-        right_col.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
         tdbox = ctk.CTkFrame(sum_card, fg_color=NAVY_HOVER, corner_radius=8)
         tdbox.pack(fill="x", padx=22, pady=(0, 14))
@@ -1999,7 +1109,6 @@ class DashboardApp(ctk.CTk):
         hcard.pack(fill="both", expand=True, pady=(16, 0))
         ctk.CTkLabel(hcard, text="Recent Invoices  [F3]  (Double-click an invoice to view or save receipt)", font=self.f_sec, text_color=TEXT).pack(anchor="w", padx=20, pady=(14, 8))
 
-<<<<<<< HEAD
         hf = ctk.CTkFrame(hcard, fg_color="transparent")
         hf.pack(fill="both", expand=True, padx=20, pady=(2, 16))
         hf.grid_columnconfigure(0, weight=1)
@@ -2011,99 +1120,6 @@ class DashboardApp(ctk.CTk):
             self.invoices_tree.column(cid, width=w, anchor="w")
         isb = ttk.Scrollbar(hf, orient="vertical", command=self.invoices_tree.yview)
         self.invoices_tree.configure(yscrollcommand=isb.set)
-=======
-        ctk.CTkButton(
-            btn_stack,
-            text="🖨  Reprint Last Receipt  [F8]",
-            height=38,
-            corner_radius=8,
-            fg_color=BLUE,
-            hover_color=BLUE_HOVER,
-            font=self.font_bold_12,
-            command=self._reprint_last_invoice
-        ).pack(fill="x", pady=(0, 8))
-
-        ctk.CTkButton(
-            btn_stack,
-            text="⌨  Help & Keyboard Shortcuts  [F9]",
-            height=36,
-            corner_radius=8,
-            fg_color=NAVY_HOVER,
-            hover_color=GRAY_HOVER,
-            font=self.font_bold_12,
-            command=self._show_pos_shortcuts_modal
-        ).pack(fill="x", pady=(0, 6))
-
-        ctk.CTkLabel(
-            summary_card,
-            text="Press F10 to complete sale  •  Press F2 to scan",
-            text_color="#94A3B8",
-            font=self.font_small_11
-        ).pack(pady=(2, 14))
-
-        history_card = ctk.CTkFrame(
-            self.content,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
-        history_card.pack(fill="both", expand=True, pady=(16, 0))
-
-        hist_header = ctk.CTkFrame(history_card, fg_color="transparent")
-        hist_header.pack(fill="x", padx=20, pady=(14, 8))
-
-        ctk.CTkLabel(
-            hist_header,
-            text="Recent Invoices  [F3]  (Double-click an invoice to view or save receipt)",
-            font=self.font_section_title,
-            text_color=TEXT
-        ).pack(side="left")
-
-        hist_table_frame = ctk.CTkFrame(history_card, fg_color="transparent")
-        hist_table_frame.pack(fill="both", expand=True, padx=20, pady=(2, 16))
-        hist_table_frame.grid_columnconfigure(0, weight=1)
-        hist_table_frame.grid_rowconfigure(0, weight=1)
-
-        inv_cols = ("id", "invoice_no", "date", "customer", "phone", "payment", "items", "total")
-        self.invoices_tree = ttk.Treeview(
-            hist_table_frame,
-            columns=inv_cols,
-            show="headings",
-            style="Inventory.Treeview",
-            height=5
-        )
-        inv_headings = {
-            "id": "ID",
-            "invoice_no": "Invoice #",
-            "date": "Date & Time",
-            "customer": "Customer Name",
-            "phone": "Phone",
-            "payment": "Payment",
-            "items": "Items",
-            "total": "Grand Total (₹)"
-        }
-        inv_widths = {
-            "id": 45,
-            "invoice_no": 140,
-            "date": 145,
-            "customer": 170,
-            "phone": 115,
-            "payment": 100,
-            "items": 65,
-            "total": 120
-        }
-        for col in inv_cols:
-            self.invoices_tree.heading(col, text=inv_headings[col])
-            self.invoices_tree.column(col, width=inv_widths[col], anchor="w")
-
-        inv_scroll = ttk.Scrollbar(
-            hist_table_frame,
-            orient="vertical",
-            command=self.invoices_tree.yview
-        )
-        self.invoices_tree.configure(yscrollcommand=inv_scroll.set)
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         self.invoices_tree.grid(row=0, column=0, sticky="nswe")
         isb.grid(row=0, column=1, sticky="ns")
         self.invoices_tree.bind("<Double-1>", self._on_invoice_history_double_click)
@@ -2222,13 +1238,8 @@ class DashboardApp(ctk.CTk):
             self.bill_qty_entry.insert(0, "1")
         self._refresh_cart_table()
 
-<<<<<<< HEAD
     def _change_cart_item_qty(self, pid, delta):
         target = next((i for i in self.cart_items if i["id"] == pid), None)
-=======
-    def _change_cart_item_qty(self, product_id, delta):
-        target = next((item for item in self.cart_items if item["id"] == product_id), None)
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         if not target:
             return
         nq = target["qty"] + delta
@@ -2559,11 +1570,6 @@ class DashboardApp(ctk.CTk):
         except Exception as exc:
             messagebox.showerror("Export Error", f"Failed to export invoices:\n{exc}", parent=self)
 
-<<<<<<< HEAD
-=======
-    # REPORTS 
-    =
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
     @staticmethod
     def _format_inr_compact(val: float) -> str:
         if val >= 100000:
@@ -2660,7 +1666,6 @@ class DashboardApp(ctk.CTk):
         alert_rows = [((r[0], r[1], r[3], r[5]), "out" if r[3] <= 0 or "out" in r[5].lower() else "low") for r in restock]
         self._simple_table(ap, (("sku", "SKU", 90), ("name", "Product Name", 195), ("qty", "Stock", 65), ("status", "Alert Status", 105)), alert_rows, tagged=True)
 
-<<<<<<< HEAD
     def _simple_table(self, parent, col_specs, rows, tagged=False):
         frame = ctk.CTkFrame(parent, fg_color="transparent")
         frame.pack(fill="both", expand=True, padx=20, pady=(4, 16))
@@ -2682,75 +1687,6 @@ class DashboardApp(ctk.CTk):
                 tree.insert("", "end", values=r[0], tags=(r[1],))
             else:
                 tree.insert("", "end", values=r)
-=======
-        cat_head = ctk.CTkFrame(cat_table_panel, fg_color="transparent")
-        cat_head.pack(fill="x", padx=20, pady=(15, 8))
-        ctk.CTkLabel(
-            cat_head,
-            text=f"Complete Category Breakdown ({total_categories} Categories)",
-            text_color=TEXT,
-            font=ctk.CTkFont(size=16, weight="bold")
-        ).pack(anchor="w")
-        ctk.CTkLabel(
-            cat_head,
-            text="Ranked by total inventory value — scroll to inspect every category",
-            text_color=MUTED,
-            font=ctk.CTkFont(size=11)
-        ).pack(anchor="w", pady=(2, 0))
-
-        self._build_category_summary_table(
-            cat_table_panel,
-            category_sku_count,
-            category_quantity,
-            category_value,
-            total_stock_val
-        )
-
-        alert_panel = ctk.CTkFrame(
-            tables_container,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
-        alert_panel.grid(row=0, column=1, sticky="nsew", padx=(6, 0), pady=6)
-
-        alert_head = ctk.CTkFrame(alert_panel, fg_color="transparent")
-        alert_head.pack(fill="x", padx=20, pady=(15, 8))
-        ctk.CTkLabel(
-            alert_head,
-            text=f"Priority Restock Watchlist ({len(restock_items)} Items)",
-            text_color=TEXT,
-            font=ctk.CTkFont(size=16, weight="bold")
-        ).pack(anchor="w")
-        ctk.CTkLabel(
-            alert_head,
-            text="Products that are Out of Stock (0) or Low Stock (≤ 10 units)",
-            text_color=MUTED,
-            font=ctk.CTkFont(size=11)
-        ).pack(anchor="w", pady=(2, 0))
-
-        self._build_restock_watchlist_table(alert_panel, restock_items)
-
-    def create_report_summary_card(self, parent, column, title, value, subtext, accent):
-        card = ctk.CTkFrame(
-            parent,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
-        card.grid(row=0, column=column, sticky="nsew", padx=5)
-
-        accent_bar = ctk.CTkFrame(
-            card,
-            width=5,
-            height=72,
-            corner_radius=3,
-            fg_color=accent
-        )
-        accent_bar.pack(side="left", padx=(12, 10), pady=12)
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
     def create_report_summary_card(self, parent, col, title, value, subtext, accent):
         card = self._card(parent)
@@ -2762,7 +1698,6 @@ class DashboardApp(ctk.CTk):
         ctk.CTkLabel(info, text=value, text_color=TEXT, font=ctk.CTkFont(size=20, weight="bold")).pack(anchor="w", pady=(2, 1))
         ctk.CTkLabel(info, text=subtext, text_color=MUTED, font=self.f_s11).pack(anchor="w")
 
-<<<<<<< HEAD
     def _chart_panel(self, parent, row, col, title, subtitle):
         panel = self._card(parent)
         panel.grid(row=row, column=col, sticky="nsew", padx=6, pady=6)
@@ -2774,66 +1709,6 @@ class DashboardApp(ctk.CTk):
         canvas = FigureCanvasTkAgg(fig, master=parent)
         canvas.draw()
         canvas.get_tk_widget().pack(fill="both", expand=True, padx=14, pady=(4, 12))
-=======
-        ctk.CTkLabel(
-            info,
-            text=title,
-            text_color=MUTED,
-            font=ctk.CTkFont(size=11, weight="bold")
-        ).pack(anchor="w")
-
-        ctk.CTkLabel(
-            info,
-            text=value,
-            text_color=TEXT,
-            font=ctk.CTkFont(size=20, weight="bold")
-        ).pack(anchor="w", pady=(2, 1))
-
-        ctk.CTkLabel(
-            info,
-            text=subtext,
-            text_color=MUTED,
-            font=ctk.CTkFont(size=11)
-        ).pack(anchor="w")
-
-    # CHART PANEL
-    def create_chart_panel(self, parent, row, column, title, subtitle):
-        panel = ctk.CTkFrame(
-            parent,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
-        panel.grid(row=row, column=column, sticky="nsew", padx=6, pady=6)
-
-        heading = ctk.CTkFrame(panel, fg_color="transparent")
-        heading.pack(fill="x", padx=20, pady=(14, 2))
-
-        ctk.CTkLabel(
-            heading,
-            text=title,
-            text_color=TEXT,
-            font=ctk.CTkFont(size=16, weight="bold")
-        ).pack(anchor="w")
-
-        ctk.CTkLabel(
-            heading,
-            text=subtitle,
-            text_color=MUTED,
-            font=ctk.CTkFont(size=11)
-        ).pack(anchor="w", pady=(1, 0))
-
-        return panel
-
-    # CHART 1  HORIZONTAL RANKED BAR - QUANTITY BY CATEGORY
-    def create_category_quantity_chart(self, parent, data, top_n=8):
-        figure = Figure(figsize=(6.2, 3.2), dpi=90)
-        self._active_figures.append(figure)
-        figure.patch.set_facecolor(WHITE)
-        ax = figure.add_subplot(111)
-        ax.set_facecolor(WHITE)
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
     def _draw_barh_chart(self, parent, data, top_n, xlabel, top_col, bar_col, fmt_fn, is_inr):
         fig = Figure(figsize=(6.2, 3.2), dpi=90)
@@ -2869,7 +1744,6 @@ class DashboardApp(ctk.CTk):
         fig.tight_layout(pad=1.2)
         self._embed_figure(parent, fig)
 
-<<<<<<< HEAD
     def _draw_donut(self, parent, values, colors, center_top, center_bot, top_color, legend_labels, startangle):
         fig = Figure(figsize=(5.4, 3.2), dpi=90)
         self._active_figures.append(fig)
@@ -2877,44 +1751,6 @@ class DashboardApp(ctk.CTk):
         ax = fig.add_subplot(111)
         if not values:
             ax.text(0.5, 0.5, "No inventory data", ha="center", va="center", fontsize=12, color=MUTED)
-=======
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            ax.spines["left"].set_color(BORDER)
-            ax.spines["bottom"].set_color(BORDER)
-
-            offset = max_val * 0.02 if max_val > 0 else 0.2
-            for bar, value in zip(bars, quantities):
-                ax.text(
-                    bar.get_width() + offset,
-                    bar.get_y() + bar.get_height() / 2,
-                    f"{value:,} units",
-                    ha="left",
-                    va="center",
-                    fontsize=8.5,
-                    fontweight="bold",
-                    color=TEXT
-                )
-
-        figure.tight_layout(pad=1.2)
-        canvas = FigureCanvasTkAgg(figure, master=parent)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True, padx=14, pady=(4, 12))
-
-    # CHART 2: DONUT CHART - STOCK DISTRIBUTION 
-    def create_stock_distribution_chart(self, parent, data, total_units=0):
-        figure = Figure(figsize=(5.4, 3.2), dpi=90)
-        self._active_figures.append(figure)
-        figure.patch.set_facecolor(WHITE)
-        ax = figure.add_subplot(111)
-
-        filtered = {k: v for k, v in data.items() if v > 0}
-        if not filtered:
-            ax.text(
-                0.5, 0.5, "No inventory data",
-                ha="center", va="center", fontsize=12, color=MUTED
-            )
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
             ax.axis("off")
         else:
             wedges, _ = ax.pie(values, colors=colors, startangle=startangle, radius=1.0, wedgeprops={"width": 0.42, "edgecolor": WHITE, "linewidth": 2})
@@ -2936,7 +1772,6 @@ class DashboardApp(ctk.CTk):
         leg = [f"{l}: {v:,} ({v / tot * 100:.1f}%)" for l, v in zip(labels, vals)]
         self._draw_donut(parent, vals, CHART_PALETTE[:len(vals)], f"{total_units:,}", "Total Units", TEXT, leg, 140)
 
-<<<<<<< HEAD
     def _draw_status_donut(self, parent, data):
         cmap = {"In Stock": GREEN, "Low Stock": ORANGE, "Out of Stock": RED}
         labels = [s for s in ("In Stock", "Low Stock", "Out of Stock") if data.get(s, 0) > 0] + [s for s in data if s not in cmap and data[s] > 0]
@@ -2948,269 +1783,6 @@ class DashboardApp(ctk.CTk):
 
     def show_settings(self):
         self.clear_content()
-=======
-    # CHART 3: HORIZONTAL RANKED BAR - STOCK VALUE BY CATEGORY
-    def create_category_value_chart(self, parent, data, top_n=8):
-        figure = Figure(figsize=(6.2, 3.2), dpi=90)
-        self._active_figures.append(figure)
-        figure.patch.set_facecolor(WHITE)
-        ax = figure.add_subplot(111)
-        ax.set_facecolor(WHITE)
-
-        if not data:
-            ax.text(
-                0.5, 0.5, "No inventory data",
-                ha="center", va="center", fontsize=12, color=MUTED
-            )
-            ax.axis("off")
-        else:
-            sorted_items = sorted(data.items(), key=lambda x: x[1], reverse=True)
-            top_items = sorted_items[:top_n]
-            categories = [
-                (k if len(k) <= 22 else k[:20] + "…") for k, _ in reversed(top_items)
-            ]
-            values = [v for _, v in reversed(top_items)]
-
-            bar_colors = [
-                "#115E59" if i == len(values) - 1 else GREEN
-                for i in range(len(values))
-            ]
-            bars = ax.barh(
-                categories,
-                values,
-                color=bar_colors,
-                height=0.62,
-                edgecolor="none"
-            )
-
-            max_val = max(values) if values else 1.0
-            ax.set_xlim(0, max_val * 1.25 if max_val > 0 else 100)
-            ax.set_xlabel("Inventory Value (₹)", fontsize=9, color=MUTED)
-            ax.tick_params(axis="y", labelsize=8.5, colors=TEXT, length=0)
-            ax.tick_params(axis="x", labelsize=8, colors=MUTED)
-            ax.grid(axis="x", linestyle="--", alpha=0.35, color="#CBD5E1")
-            ax.set_axisbelow(True)
-
-            ax.spines["top"].set_visible(False)
-            ax.spines["right"].set_visible(False)
-            ax.spines["left"].set_color(BORDER)
-            ax.spines["bottom"].set_color(BORDER)
-
-            ax.xaxis.set_major_formatter(
-                matplotlib.ticker.FuncFormatter(lambda x, _pos: self._format_inr_compact(x))
-            )
-
-            offset = max_val * 0.02 if max_val > 0 else 1.0
-            for bar, value in zip(bars, values):
-                ax.text(
-                    bar.get_width() + offset,
-                    bar.get_y() + bar.get_height() / 2,
-                    self._format_inr_compact(value),
-                    ha="left",
-                    va="center",
-                    fontsize=8.5,
-                    fontweight="bold",
-                    color=TEXT
-                )
-
-        figure.tight_layout(pad=1.2)
-        canvas = FigureCanvasTkAgg(figure, master=parent)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True, padx=14, pady=(4, 12))
-
-    # CHART 4: DONUT CHART - STOCK AVAILABILITY STATUS
-    def create_stock_status_chart(self, parent, data, total_products=0):
-        figure = Figure(figsize=(5.4, 3.2), dpi=90)
-        self._active_figures.append(figure)
-        figure.patch.set_facecolor(WHITE)
-        ax = figure.add_subplot(111)
-
-        non_zero = {k: v for k, v in data.items() if v > 0}
-        if not non_zero:
-            ax.text(
-                0.5, 0.5, "No inventory data",
-                ha="center", va="center", fontsize=12, color=MUTED
-            )
-            ax.axis("off")
-        else:
-            status_order = ["In Stock", "Low Stock", "Out of Stock"]
-            status_colors = {
-                "In Stock": GREEN,
-                "Low Stock": ORANGE,
-                "Out of Stock": RED
-            }
-
-            labels = [s for s in status_order if data.get(s, 0) > 0]
-            for s in data:
-                if s not in labels and data[s] > 0:
-                    labels.append(s)
-
-            values = [data[s] for s in labels]
-            colors = [status_colors.get(s, BLUE) for s in labels]
-            total = sum(values) or 1
-            in_stock_pct = (data.get("In Stock", 0) / total) * 100.0
-
-            wedges, _ = ax.pie(
-                values,
-                colors=colors,
-                startangle=90,
-                radius=1.0,
-                wedgeprops={"width": 0.42, "edgecolor": WHITE, "linewidth": 2}
-            )
-
-            ax.text(
-                0, 0.08,
-                f"{in_stock_pct:.0f}%",
-                ha="center", va="center",
-                fontsize=15, fontweight="bold", color=GREEN
-            )
-            ax.text(
-                0, -0.18,
-                "In Stock",
-                ha="center", va="center",
-                fontsize=8.5, color=MUTED
-            )
-
-            legend_labels = [
-                f"{lbl}: {val} SKUs ({val / total * 100:.0f}%)"
-                for lbl, val in zip(labels, values)
-            ]
-            ax.legend(
-                wedges,
-                legend_labels,
-                loc="center left",
-                bbox_to_anchor=(0.95, 0.5),
-                frameon=False,
-                fontsize=8.5,
-                labelcolor=TEXT
-            )
-            ax.set_aspect("equal")
-
-        figure.subplots_adjust(left=0.02, right=0.52, top=0.94, bottom=0.06)
-        canvas = FigureCanvasTkAgg(figure, master=parent)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill="both", expand=True, padx=14, pady=(4, 12))
-
-    def _build_category_summary_table(
-        self,
-        parent,
-        category_sku_count,
-        category_quantity,
-        category_value,
-        total_stock_val
-    ):
-        frame = ctk.CTkFrame(parent, fg_color="transparent")
-        frame.pack(fill="both", expand=True, padx=20, pady=(4, 16))
-        frame.grid_columnconfigure(0, weight=1)
-        frame.grid_rowconfigure(0, weight=1)
-
-        cols = ("rank", "category", "skus", "units", "value", "share")
-        tree = ttk.Treeview(
-            frame,
-            columns=cols,
-            show="headings",
-            style="Inventory.Treeview",
-            height=8
-        )
-        headings = {
-            "rank": "#",
-            "category": "Category Name",
-            "skus": "SKUs",
-            "units": "Total Units",
-            "value": "Stock Value (₹)",
-            "share": "Value Share"
-        }
-        widths = {
-            "rank": 40,
-            "category": 185,
-            "skus": 65,
-            "units": 90,
-            "value": 125,
-            "share": 90
-        }
-        for col in cols:
-            tree.heading(col, text=headings[col])
-            tree.column(col, width=widths[col], anchor="w")
-
-        scrollbar = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
-        tree.configure(yscrollcommand=scrollbar.set)
-        tree.grid(row=0, column=0, sticky="nswe")
-        scrollbar.grid(row=0, column=1, sticky="ns")
-
-        sorted_cats = sorted(
-            category_value.keys(),
-            key=lambda c: category_value[c],
-            reverse=True
-        )
-        denom = total_stock_val if total_stock_val > 0 else 1.0
-        for idx, cat in enumerate(sorted_cats, start=1):
-            val = category_value[cat]
-            share_pct = (val / denom) * 100.0
-            tree.insert(
-                "",
-                "end",
-                values=(
-                    idx,
-                    cat,
-                    category_sku_count[cat],
-                    f"{category_quantity[cat]:,}",
-                    f"₹{val:,.2f}",
-                    f"{share_pct:.1f}%"
-                )
-            )
-
-    def _build_restock_watchlist_table(self, parent, restock_items):
-        frame = ctk.CTkFrame(parent, fg_color="transparent")
-        frame.pack(fill="both", expand=True, padx=20, pady=(4, 16))
-        frame.grid_columnconfigure(0, weight=1)
-        frame.grid_rowconfigure(0, weight=1)
-
-        cols = ("sku", "name", "qty", "status")
-        tree = ttk.Treeview(
-            frame,
-            columns=cols,
-            show="headings",
-            style="Inventory.Treeview",
-            height=8
-        )
-        headings = {
-            "sku": "SKU",
-            "name": "Product Name",
-            "qty": "Stock",
-            "status": "Alert Status"
-        }
-        widths = {
-            "sku": 90,
-            "name": 195,
-            "qty": 65,
-            "status": "105"
-        }
-        for col in cols:
-            tree.heading(col, text=headings[col])
-            tree.column(col, width=int(widths[col]), anchor="w")
-
-        tree.tag_configure("out", foreground=RED)
-        tree.tag_configure("low", foreground=ORANGE)
-
-        scrollbar = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
-        tree.configure(yscrollcommand=scrollbar.set)
-        tree.grid(row=0, column=0, sticky="nswe")
-        scrollbar.grid(row=0, column=1, sticky="ns")
-
-        for sku, name, _cat, qty, _price, status in restock_items:
-            tag = "out" if qty <= 0 or "out" in status.lower() else "low"
-            tree.insert(
-                "",
-                "end",
-                values=(sku, name, qty, status),
-                tags=(tag,)
-            )
-   
-    # SETTINGS 
-    def show_settings(self):
-        self.clear_content()
-
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
         header = ctk.CTkFrame(self.content, fg_color="transparent")
         header.pack(fill="x", pady=(0, 18))
         ctk.CTkLabel(header, text="System Settings & Administration", font=self.f_title, text_color=TEXT).pack(anchor="w")
@@ -3221,59 +1793,10 @@ class DashboardApp(ctk.CTk):
         ws.grid_columnconfigure(0, weight=3)
         ws.grid_columnconfigure(1, weight=2)
 
-<<<<<<< HEAD
         lcard = self._card(ws)
         lcard.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
         ctk.CTkLabel(lcard, text="🏪 Store Profile & Billing Defaults", font=self.f_sec, text_color=TEXT).pack(anchor="w", padx=24, pady=(20, 4))
         ctk.CTkLabel(lcard, text="These settings appear on generated POS receipts and control alert thresholds", text_color=MUTED, font=self.f_r12).pack(anchor="w", padx=24, pady=(0, 14))
-=======
-        ctk.CTkLabel(
-            title_col,
-            text="System Settings & Administration",
-            font=self.font_page_title,
-            text_color=TEXT
-        ).pack(anchor="w")
-
-        ctk.CTkLabel(
-            title_col,
-            text="Configure store branding, default POS billing rates, stock alert rules, and database backups",
-            text_color=MUTED,
-            font=self.font_regular_13
-        ).pack(anchor="w", pady=(2, 0))
-
-        workspace = ctk.CTkFrame(self.content, fg_color="transparent")
-        workspace.pack(fill="both", expand=True)
-        workspace.grid_columnconfigure(0, weight=3)
-        workspace.grid_columnconfigure(1, weight=2)
-
-        left_card = ctk.CTkFrame(
-            workspace,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
-        left_card.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
-
-        ctk.CTkLabel(
-            left_card,
-            text="🏪 Store Profile & Billing Defaults",
-            font=self.font_section_title,
-            text_color=TEXT
-        ).pack(anchor="w", padx=24, pady=(20, 4))
-
-        ctk.CTkLabel(
-            left_card,
-            text="These settings appear on generated POS receipts and control alert thresholds",
-            text_color=MUTED,
-            font=self.font_regular_12
-        ).pack(anchor="w", padx=24, pady=(0, 14))
-
-        form_frame = ctk.CTkFrame(left_card, fg_color="transparent")
-        form_frame.pack(fill="x", padx=24, pady=(0, 14))
-        form_frame.grid_columnconfigure(0, weight=1)
-        form_frame.grid_columnconfigure(1, weight=1)
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
         ff = ctk.CTkFrame(lcard, fg_color="transparent")
         ff.pack(fill="x", padx=24, pady=(0, 14))
@@ -3302,53 +1825,9 @@ class DashboardApp(ctk.CTk):
         ctk.CTkButton(bbar, text="💾 Save All Settings", height=40, fg_color=BLUE, hover_color=BLUE_HOVER, font=self.f_b12, command=self._on_save_settings_click).pack(side="left", expand=True, fill="x", padx=(0, 8))
         ctk.CTkButton(bbar, text="↺ Restore Defaults", height=40, fg_color=GRAY, hover_color=GRAY_HOVER, font=self.f_b12, command=self._on_restore_default_settings).pack(side="right", expand=True, fill="x", padx=(8, 0))
 
-<<<<<<< HEAD
         db_card = self._card(ws)
         db_card.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
         ctk.CTkLabel(db_card, text="🗄 Database Health & Diagnostics", font=self.f_sec, text_color=TEXT).pack(anchor="w", padx=24, pady=(20, 6))
-=======
-        btn_bar = ctk.CTkFrame(left_card, fg_color="transparent")
-        btn_bar.pack(fill="x", padx=30, pady=(10, 22))
-
-        ctk.CTkButton(
-            btn_bar,
-            text="💾 Save All Settings",
-            height=40,
-            fg_color=BLUE,
-            hover_color=BLUE_HOVER,
-            font=self.font_bold_12,
-            command=self._on_save_settings_click
-        ).pack(side="left", expand=True, fill="x", padx=(0, 8))
-
-        ctk.CTkButton(
-            btn_bar,
-            text="↺ Restore Defaults",
-            height=40,
-            fg_color=GRAY,
-            hover_color=GRAY_HOVER,
-            font=self.font_bold_12,
-            command=self._on_restore_default_settings
-        ).pack(side="right", expand=True, fill="x", padx=(8, 0))
-
-        right_col = ctk.CTkFrame(workspace, fg_color="transparent")
-        right_col.grid(row=0, column=1, sticky="nsew", padx=(10, 0))
-
-        db_card = ctk.CTkFrame(
-            right_col,
-            fg_color=WHITE,
-            corner_radius=10,
-            border_width=1,
-            border_color=BORDER
-        )
-        db_card.pack(fill="both", expand=True)
-
-        ctk.CTkLabel(
-            db_card,
-            text="🗄 Database Health & Diagnostics",
-            font=self.font_section_title,
-            text_color=TEXT
-        ).pack(anchor="w", padx=24, pady=(20, 6))
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
         db_path = self._get_billing_db_path()
         size_kb = db_path.stat().st_size / 1024.0 if db_path.exists() else 0.0
@@ -3365,7 +1844,6 @@ class DashboardApp(ctk.CTk):
         ):
             ctk.CTkLabel(dbox, text=txt, text_color=col, font=fn).pack(anchor="w", padx=14, pady=py)
 
-<<<<<<< HEAD
         ctk.CTkLabel(db_card, text="Backup & Maintenance Tools", font=self.f_b14, text_color=TEXT).pack(anchor="w", padx=24, pady=(4, 8))
         tbox = ctk.CTkFrame(db_card, fg_color="transparent")
         tbox.pack(fill="x", padx=24, pady=(0, 20))
@@ -3376,85 +1854,6 @@ class DashboardApp(ctk.CTk):
             ("⚠ Factory Reset All Inventory Products", RED, RED_HOVER, self._factory_reset_inventory),
         ):
             ctk.CTkButton(tbox, text=txt, height=38, fg_color=fg, hover_color=hv, font=self.f_b12, command=cmd).pack(fill="x", pady=4)
-=======
-        ctk.CTkLabel(
-            diag_box,
-            text="● Status: Connected (SQLite WAL High-Speed Mode)",
-            text_color=GREEN,
-            font=self.font_bold_12
-        ).pack(anchor="w", padx=14, pady=(10, 4))
-
-        ctk.CTkLabel(
-            diag_box,
-            text=f"File: {db_path.name}  ({size_kb:.1f} KB)",
-            text_color=TEXT,
-            font=self.font_regular_12
-        ).pack(anchor="w", padx=14, pady=2)
-
-        ctk.CTkLabel(
-            diag_box,
-            text=f"Records: {stats.get('total_products', 0)} Products  |  {inv_count} Invoices",
-            text_color=MUTED,
-            font=self.font_regular_12
-        ).pack(anchor="w", padx=14, pady=2)
-
-        ctk.CTkLabel(
-            diag_box,
-            text=f"Lifetime Billed Revenue: ₹{total_rev:,.2f}",
-            text_color=NAVY,
-            font=self.font_bold_12
-        ).pack(anchor="w", padx=14, pady=(2, 10))
-
-        ctk.CTkLabel(
-            db_card,
-            text="Backup & Maintenance Tools",
-            font=self.font_bold_14,
-            text_color=TEXT
-        ).pack(anchor="w", padx=24, pady=(4, 8))
-
-        tools_box = ctk.CTkFrame(db_card, fg_color="transparent")
-        tools_box.pack(fill="x", padx=24, pady=(0, 20))
-
-        ctk.CTkButton(
-            tools_box,
-            text="💾 Backup Database File (.db)",
-            height=38,
-            fg_color=GREEN,
-            hover_color=GREEN_HOVER,
-            font=self.font_bold_12,
-            command=self._backup_database_file
-        ).pack(fill="x", pady=4)
-
-        ctk.CTkButton(
-            tools_box,
-            text="⚡ Optimize & Compact Database (VACUUM)",
-            height=38,
-            fg_color=NAVY,
-            hover_color=NAVY_HOVER,
-            font=self.font_bold_12,
-            command=self._optimize_database
-        ).pack(fill="x", pady=4)
-
-        ctk.CTkButton(
-            tools_box,
-            text="🧹 Clear Invoice History Only",
-            height=38,
-            fg_color=ORANGE,
-            hover_color=ORANGE_HOVER,
-            font=self.font_bold_12,
-            command=self._clear_all_invoice_history
-        ).pack(fill="x", pady=4)
-
-        ctk.CTkButton(
-            tools_box,
-            text="⚠ Factory Reset All Inventory Products",
-            height=38,
-            fg_color=RED,
-            hover_color=RED_HOVER,
-            font=self.font_bold_12,
-            command=self._factory_reset_inventory
-        ).pack(fill="x", pady=4)
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 
     def _on_save_settings_click(self):
         vals = {k: e.get().strip() for k, e in self._settings_entries.items()}
@@ -3529,19 +1928,11 @@ class DashboardApp(ctk.CTk):
         except Exception as exc:
             messagebox.showerror("Error", str(exc), parent=self)
 
-<<<<<<< HEAD
-=======
-    # CREATE INVOICE 
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
     def create_invoice(self):
         self.show_page("Billing")
         self._shortcut_focus_scan_search()
 
-<<<<<<< HEAD
 
-=======
-# RUN APPLICATION
->>>>>>> 77512603df9b315f40e2f44f75c5a61ec1ba644e
 if __name__ == "__main__":
     app = DashboardApp()
     app.mainloop()
