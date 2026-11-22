@@ -4,9 +4,7 @@ import sqlite3
 import sys
 from pathlib import Path
 
-# ============================================================
-# PERSISTENT DATABASE LOCATION (NEXT TO .EXE OR MAIN.PY)
-# ============================================================
+# DATABASE LOCATION 
 if getattr(sys, "frozen", False):
     APP_DIR = Path(sys.executable).resolve().parent
 else:
@@ -15,7 +13,6 @@ else:
 DB_FOLDER = APP_DIR / "Database"
 DB_PATH = DB_FOLDER / "inventory.db"
 
-# Ensure directory exists immediately
 DB_FOLDER.mkdir(parents=True, exist_ok=True)
 
 LOW_STOCK_THRESHOLD = 10
@@ -26,7 +23,6 @@ def get_connection():
     DB_FOLDER.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(DB_PATH))
 
-    # Using DELETE mode avoids WAL checkpoint lock bugs when apps close unexpectedly
     try:
         conn.execute("PRAGMA journal_mode=DELETE;")
     except sqlite3.Error:
@@ -273,7 +269,6 @@ def import_products_from_csv(file_path):
             if not reader.fieldnames:
                 return 0, 0, ["CSV file is empty or missing header columns."]
 
-            # Build case-insensitive header mapping
             header_map = {str(h).strip().lower(): h for h in reader.fieldnames if h}
 
             def get_col(row_dict, *candidates):
@@ -292,17 +287,14 @@ def import_products_from_csv(file_path):
                     qty_str = get_col(row, "quantity", "qty", "stock", "count")
                     price_str = get_col(row, "price", "unit price", "rate", "cost", "mrp")
 
-                    # Clean currency symbols and commas
                     price_str = price_str.replace("₹", "").replace("$", "").replace(",", "").strip()
                     qty_str = qty_str.replace(",", "").strip()
 
-                    # Check required fields
                     if not sku or not name or qty_str == "" or price_str == "":
                         skipped += 1
                         errors.append(f"Row {idx}: Missing essential fields (SKU, Name, Quantity, or Price).")
                         continue
 
-                    # Parse numbers safely
                     try:
                         qty = int(float(qty_str))
                         price = float(price_str)
@@ -313,7 +305,6 @@ def import_products_from_csv(file_path):
                         errors.append(f"Row {idx} ('{sku}'): Invalid number format for quantity ('{qty_str}') or price ('{price_str}').")
                         continue
 
-                    # Check for duplicate SKU before inserting
                     cursor.execute("SELECT 1 FROM products WHERE sku = ?", (sku,))
                     if cursor.fetchone():
                         skipped += 1
@@ -336,7 +327,6 @@ def import_products_from_csv(file_path):
     except Exception as exc:
         errors.append(f"File reading error: {str(exc)}")
 
-    # Always return 3 items, never None
     return added, skipped, errors
 
 def export_products_to_csv(file_path):
